@@ -90,7 +90,7 @@ private val height by parser.option(
 
 private val moveNumber by parser.option(
     type = ArgType.Int,
-    fullName = "moveNumber",
+    fullName = "move-number",
     shortName = "mn",
     description = "The move number up to which the animation will run to."
 ).default(Int.MAX_VALUE)
@@ -104,13 +104,13 @@ private val delay by parser.option(
 
 private val showMoveNumber by parser.option(
     type = ArgType.Boolean,
-    fullName = "showMoveNumber",
+    fullName = "show-move-number",
     description = "Whether each stone should be annotated with its move number or not."
 ).default(true)
 
 private val removeCapturedStones by parser.option(
     type = ArgType.Boolean,
-    fullName = "removeCapturedStones",
+    fullName = "remove-captured-stones",
     description = "Whether captured stones should be removed or kept in the animation."
 ).default(false)
 
