@@ -62,7 +62,8 @@ fun writeGif(outputStream: ImageOutputStream, delay: Duration, loop: Boolean, bl
     val loopContinuously = if (loop) 0 else 1
     child.userObject = byteArrayOf(
         0x1,
-        (loopContinuously and 0xFF).toByte()
+        (loopContinuously and 0xFF).toByte(),
+        (loopContinuously shr 8 and 0xFF).toByte()
     )
     appExtensionsNode.appendChild(child)
     metaData.setFromTree(metaData.nativeMetadataFormatName, root)
