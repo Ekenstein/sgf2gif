@@ -15,4 +15,4 @@ Options:
     --help, -h -> Usage info
 ```
 
-![](https://github.com/Ekenstein/sgf2gif/blob/main/example.gif?raw=true)
+![](https://github.com/Ekenstein/sgf2gif/blob/main/Ding_Hao-Tuo_Jiaxi.gif?raw=true)
