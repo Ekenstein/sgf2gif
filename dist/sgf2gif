@@ -1,0 +1,2 @@
+#/usr/bin
+java -jar lib/sgf2gif.jar $@

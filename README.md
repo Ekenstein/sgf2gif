@@ -12,8 +12,7 @@ Options:
     --move-number, -mn [2147483647] -> The move number up to which the animation will run to. { Int }
     --delay, -d [2] -> The delay between frames in seconds. { Int }
     --show-move-number [true] -> Whether each stone should be annotated with its move number or not. 
-    --remove-captured-stones [false] -> Whether captured stones should be removed or kept in the animation. 
-    --help, -h -> Usage info 
+    --help, -h -> Usage info
 ```
 
 ![](https://github.com/Ekenstein/sgf2gif/blob/main/example.gif?raw=true)

@@ -4,9 +4,13 @@ import com.github.ekenstein.sgf.SgfCollection
 import com.github.ekenstein.sgf.SgfException
 import com.github.ekenstein.sgf.SgfGameTree
 import com.github.ekenstein.sgf.editor.SgfEditor
+import com.github.ekenstein.sgf.editor.goToLastNode
 import com.github.ekenstein.sgf.editor.goToNextMove
-import com.github.ekenstein.sgf.editor.repeat
+import com.github.ekenstein.sgf.editor.stay
+import com.github.ekenstein.sgf.editor.tryRepeat
 import com.github.ekenstein.sgf.parser.from
+import com.github.ekenstein.sgf.utils.get
+import com.github.ekenstein.sgf.utils.orElse
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.ParsingException
@@ -18,7 +22,7 @@ import javax.imageio.stream.FileImageOutputStream
 import kotlin.io.path.exists
 import kotlin.time.Duration.Companion.seconds
 
-private class PathArgType : ArgType<Path>(false) {
+private class PathArgType : ArgType<Path>(true) {
     override val description: kotlin.String
         get() = ""
 
@@ -31,7 +35,7 @@ private class PathArgType : ArgType<Path>(false) {
     }
 }
 
-private class SgfArgType : ArgType<SgfGameTree>(false) {
+private class SgfArgType : ArgType<SgfGameTree>(true) {
     override val description: kotlin.String
         get() = ""
 
@@ -43,7 +47,7 @@ private class SgfArgType : ArgType<SgfGameTree>(false) {
         }
 
         if (!path.exists()) {
-            throw ParsingException("Option $name is expected to exist.")
+            throw ParsingException("Option $name is expected to exist. The path was $path")
         }
 
         return try {
@@ -108,17 +112,12 @@ private val showMoveNumber by parser.option(
     description = "Whether each stone should be annotated with its move number or not."
 ).default(true)
 
-private val removeCapturedStones by parser.option(
-    type = ArgType.Boolean,
-    fullName = "remove-captured-stones",
-    description = "Whether captured stones should be removed or kept in the animation."
-).default(false)
-
 fun main(args: Array<String>) {
     parser.parse(args)
-    val editor = SgfEditor(sgf).repeat(moveNumber) {
-        it.goToNextMove()
-    }
+    val editor = SgfEditor(sgf)
+        .tryRepeat(moveNumber) { it.goToNextMove() }
+        .orElse { it.goToLastNode().stay() }
+        .get()
 
     val outputFile = output.toFile()
     FileImageOutputStream(outputFile).use {
@@ -129,11 +128,7 @@ fun main(args: Array<String>) {
             height = height,
             delay = delay.seconds,
             loop = loop,
-            showMoveNumber = showMoveNumber,
-            removeCapturedStones = removeCapturedStones
+            showMoveNumber = showMoveNumber
         )
     }
 }
-
-
-

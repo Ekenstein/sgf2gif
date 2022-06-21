@@ -1,5 +1,5 @@
-import com.github.benmanes.gradle.versions.updates.resolutionstrategy.ComponentSelectionWithCurrent
 import com.github.benmanes.gradle.versions.updates.resolutionstrategy.ComponentFilter
+import com.github.benmanes.gradle.versions.updates.resolutionstrategy.ComponentSelectionWithCurrent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.nio.file.Paths
 import kotlin.io.path.ExperimentalPathApi
@@ -34,6 +34,27 @@ dependencies {
 }
 
 tasks {
+    register<Copy>("packageDistribution") {
+        dependsOn("jar")
+        from("${project.rootDir}/scripts/${project.name}")
+
+        from("${project.projectDir}/build/libs/${project.name}.jar") {
+            into("lib")
+        }
+
+        into("${project.rootDir}/dist")
+    }
+
+    jar {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        manifest {
+            attributes["Main-Class"] = application.mainClass
+        }
+
+        from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+        archiveFileName.set("${project.name}.jar")
+    }
+
     dependencyUpdates {
         rejectVersionIf(UpgradeToUnstableFilter())
     }
@@ -59,7 +80,7 @@ tasks {
 }
 
 ktlint {
-    version.set("0.46.0")
+    version.set("0.45.2")
 }
 
 class UpgradeToUnstableFilter : ComponentFilter {

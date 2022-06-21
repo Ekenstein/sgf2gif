@@ -8,11 +8,14 @@ import com.github.ekenstein.sgf.editor.SgfEditor
 import com.github.ekenstein.sgf.editor.getMoveNumber
 import com.github.ekenstein.sgf.editor.goToPreviousNode
 import com.github.ekenstein.sgf.utils.MoveResult
+import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.Graphics
+import java.awt.Graphics2D
 import java.awt.RenderingHints
+import java.awt.geom.Ellipse2D
 import java.awt.image.BufferedImage
 import java.awt.image.RenderedImage
 import javax.imageio.stream.ImageOutputStream
@@ -35,7 +38,7 @@ private fun boardX(x: Int, canvasWidth: Int, boardWidth: Int) =
 private fun boardY(y: Int, canvasHeight: Int, boardHeight: Int) =
     (intersectionHeight(canvasHeight, boardHeight) * y) + yOffset(canvasHeight)
 
-private fun Graphics.drawStone(
+private fun Graphics2D.drawStone(
     stone: Stone,
     canvasWidth: Int,
     canvasHeight: Int,
@@ -43,34 +46,43 @@ private fun Graphics.drawStone(
     boardHeight: Int,
     annotateMoveNumber: Boolean
 ) {
+    setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
     val middleX = boardX(stone.point.x - 1, canvasWidth, boardWidth)
     val middleY = boardY(stone.point.y - 1, canvasHeight, boardHeight)
 
-    val circleWidth = (intersectionWidth(canvasWidth, boardWidth) * 0.90).toInt()
-    val circleHeight = (intersectionHeight(canvasHeight, boardHeight) * 0.90).toInt()
+    val circleWidth = (intersectionWidth(canvasWidth, boardWidth) * 0.90)
+    val circleHeight = (intersectionHeight(canvasHeight, boardHeight) * 0.90)
 
     val topLeftX = middleX - (circleWidth / 2)
     val topLeftY = middleY - (circleHeight / 2)
 
+    val shape = Ellipse2D.Double(
+        topLeftX,
+        topLeftY,
+        circleWidth,
+        circleHeight
+    )
+
     when (stone.color) {
         SgfColor.Black -> {
             color = Color.BLACK
-            fillOval(topLeftX, topLeftY, circleWidth, circleHeight)
+            fill(shape)
 
             if (stone.moveNumber != null && annotateMoveNumber) {
                 color = Color.WHITE
-                drawCenteredText(circleWidth, circleHeight, middleX, middleY, stone.moveNumber.toString())
+                drawCenteredText(circleWidth.toInt(), circleHeight.toInt(), middleX, middleY, stone.moveNumber.toString())
             }
         }
         SgfColor.White -> {
             color = Color.WHITE
-            fillOval(topLeftX, topLeftY, circleWidth, circleHeight)
+            fill(shape)
 
             color = Color.BLACK
-            drawOval(topLeftX, topLeftY, circleWidth, circleHeight)
+            stroke = BasicStroke(3F)
+            draw(shape)
 
             if (stone.moveNumber != null && annotateMoveNumber) {
-                drawCenteredText(circleWidth, circleHeight, middleX, middleY, stone.moveNumber.toString())
+                drawCenteredText(circleWidth.toInt(), circleHeight.toInt(), middleX, middleY, stone.moveNumber.toString())
             }
         }
     }
@@ -96,7 +108,7 @@ private fun Graphics.drawStarPoint(
     fillOval(topLeftX, topLeftY, circleWidth, circleHeight)
 }
 
-private fun Graphics.drawIntersections(canvasWidth: Int, canvasHeight: Int, boardWidth: Int, boardHeight: Int) {
+private fun Graphics2D.drawIntersections(canvasWidth: Int, canvasHeight: Int, boardWidth: Int, boardHeight: Int) {
     val yOffset = yOffset(canvasHeight)
     val xOffset = xOffset(canvasWidth)
 
@@ -106,17 +118,27 @@ private fun Graphics.drawIntersections(canvasWidth: Int, canvasHeight: Int, boar
     color = Color.BLACK
 
     repeat(boardWidth) { x ->
+        stroke = if (x == 0 || x == boardWidth - 1) {
+            BasicStroke(3F)
+        } else {
+            BasicStroke(1F)
+        }
         val gx = boardX(x, canvasWidth, boardWidth)
         drawLine(gx, yOffset, gx, yOffset + (intersectionHeight * (boardHeight - 1)))
     }
 
     repeat(boardHeight) { y ->
+        stroke = if (y == 0 || y == boardHeight - 1) {
+            BasicStroke(3F)
+        } else {
+            BasicStroke(1F)
+        }
         val gy = boardY(y, canvasHeight, boardHeight)
         drawLine(xOffset, gy, xOffset + (intersectionWidth * (boardWidth - 1)), gy)
     }
 }
 
-private fun Graphics.drawEmptyBoard(canvasWidth: Int, canvasHeight: Int, boardWidth: Int, boardHeight: Int) {
+private fun Graphics2D.drawEmptyBoard(canvasWidth: Int, canvasHeight: Int, boardWidth: Int, boardHeight: Int) {
     color = Color.WHITE
     fillRect(0, 0, canvasWidth, canvasHeight)
 
@@ -232,7 +254,7 @@ fun convertPositionToImage(
     val image = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
     val graphics = image.createGraphics().apply {
         setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-        drawEmptyBoard(width,  height, boardWidth, boardHeight)
+        drawEmptyBoard(width, height, boardWidth, boardHeight)
 
         position.getStones().forEach {
             drawStone(it, width, height, boardWidth, boardHeight, true)
@@ -250,8 +272,7 @@ fun convertPositionToAnimatedGif(
     height: Int = 1000,
     delay: Duration = 2.seconds,
     loop: Boolean = true,
-    showMoveNumber: Boolean = true,
-    removeCapturedStones: Boolean = false
+    showMoveNumber: Boolean = true
 ) {
     val (boardWidth, boardHeight) = editor.boardSize()
     writeGif(outputStream, delay, loop) {

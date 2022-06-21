@@ -49,7 +49,6 @@ private fun starPointsForBoardSize(boardSize: Int) = when {
     else -> 9
 }
 
-
 private fun edgeDistance(boardSize: Int) = when {
     boardSize < 7 -> null
     boardSize < 13 -> 3
