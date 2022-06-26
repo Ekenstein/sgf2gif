@@ -11,6 +11,8 @@ import com.github.ekenstein.sgf.editor.tryRepeat
 import com.github.ekenstein.sgf.parser.from
 import com.github.ekenstein.sgf.utils.get
 import com.github.ekenstein.sgf.utils.orElse
+import com.github.ekenstein.sgf2gif.themes.Classic
+import com.github.ekenstein.sgf2gif.themes.Nes
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.ParsingException
@@ -73,6 +75,12 @@ private val output by parser.option(
     fullName = "output"
 ).required()
 
+private val theme by parser.option(
+    type = ArgType.Choice<Theme>(),
+    fullName = "theme",
+    description = "The theme to render the board width"
+).default(Theme.NES)
+
 private val loop by parser.option(
     type = ArgType.Boolean,
     fullName = "loop",
@@ -119,16 +127,14 @@ fun main(args: Array<String>) {
         .orElse { it.goToLastNode().stay() }
         .get()
 
+    val (boardWidth, boardHeight) = editor.boardSize()
     val outputFile = output.toFile()
     FileImageOutputStream(outputFile).use {
-        convertPositionToAnimatedGif(
-            outputStream = it,
-            editor = editor,
-            width = width,
-            height = height,
-            delay = delay.seconds,
-            loop = loop,
-            showMoveNumber = showMoveNumber
-        )
+        val renderer = when (theme) {
+            Theme.Classic -> Classic(width, height, boardWidth, boardHeight, true)
+            Theme.NES -> Nes(width, height, boardWidth, boardHeight)
+        }
+
+        renderer.render(it, editor, width, height, delay.seconds, loop)
     }
 }

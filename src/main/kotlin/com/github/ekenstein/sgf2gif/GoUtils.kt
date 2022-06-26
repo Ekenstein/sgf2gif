@@ -1,9 +1,14 @@
 package com.github.ekenstein.sgf2gif
 
+import com.github.ekenstein.sgf.Move
+import com.github.ekenstein.sgf.SgfColor
 import com.github.ekenstein.sgf.SgfPoint
 import com.github.ekenstein.sgf.SgfProperty
 import com.github.ekenstein.sgf.editor.SgfEditor
+import com.github.ekenstein.sgf.editor.getMoveNumber
+import com.github.ekenstein.sgf.editor.goToPreviousNode
 import com.github.ekenstein.sgf.editor.goToRootNode
+import com.github.ekenstein.sgf.utils.MoveResult
 import com.github.ekenstein.sgf.utils.NonEmptySet
 import com.github.ekenstein.sgf.utils.nonEmptySetOf
 import kotlin.math.ceil
@@ -11,6 +16,35 @@ import kotlin.math.ceil
 fun SgfEditor.boardSize() = goToRootNode().currentNode.property<SgfProperty.Root.SZ>()?.let {
     it.width to it.height
 } ?: (19 to 19)
+
+fun SgfEditor.getStones(): List<Stone> {
+    tailrec fun SgfEditor.next(result: List<Stone>): List<Stone> {
+        val stones = currentNode.properties.flatMap { property ->
+            when (property) {
+                is SgfProperty.Setup.AB -> property.points.map { Stone(it, SgfColor.Black, null) }
+                is SgfProperty.Setup.AW -> property.points.map { Stone(it, SgfColor.White, null) }
+                is SgfProperty.Move.B -> when (val move = property.move) {
+                    Move.Pass -> emptyList()
+                    is Move.Stone -> listOf(Stone(move.point, SgfColor.Black, getMoveNumber()))
+                }
+                is SgfProperty.Move.W -> when (val move = property.move) {
+                    Move.Pass -> emptyList()
+                    is Move.Stone -> listOf(Stone(move.point, SgfColor.White, getMoveNumber()))
+                }
+                else -> emptyList()
+            }
+        }
+
+        val allStones = result + stones
+
+        return when (val next = goToPreviousNode()) {
+            is MoveResult.Failure -> allStones
+            is MoveResult.Success -> next.position.next(allStones)
+        }
+    }
+
+    return next(emptyList())
+}
 
 fun starPoints(boardSize: Int): Set<SgfPoint> {
     val edgeDistance = edgeDistance(boardSize)
