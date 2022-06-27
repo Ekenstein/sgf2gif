@@ -1,6 +1,7 @@
 package com.github.ekenstein.sgf2gif.themes
 
 import com.github.ekenstein.sgf.SgfColor
+import com.github.ekenstein.sgf.SgfPoint
 import com.github.ekenstein.sgf2gif.BoardRenderer
 import com.github.ekenstein.sgf2gif.Stone
 import com.github.ekenstein.sgf2gif.starPoints
@@ -9,6 +10,8 @@ import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.geom.Line2D
 import java.awt.geom.Rectangle2D
+import java.lang.Float.max
+import java.lang.Float.min
 
 private val COLOR_SHADOW = Color.BLACK
 private val COLOR_GOBAN = Color(162, 92, 0, 255)
@@ -21,6 +24,8 @@ private const val PERSPECTIVE_FACTOR = 0.01F
 private const val BOARD_SCALE = 0.90F
 private const val SHADOW_OFFSET_FACTOR = 0.7F
 private const val PLAY_AREA_OFFSET_FACTOR = 0.03F
+private const val STONE_WIDTH = 7 * PIXEL_SIZE
+private const val STONE_HEIGHT = 8 * PIXEL_SIZE
 
 class Nes(
     private val width: Int,
@@ -145,18 +150,22 @@ class Nes(
 
         val starPoints = starPoints(boardWidth)
         starPoints.forEach { (x, y) ->
-            val gx = playAreaX(x)
-            val gy = playAreaY(y)
-
-            val gh = PIXEL_SIZE * 3
-            val gw = PIXEL_SIZE * 4
-
-            val topLeftX = gx - (gw / 2)
-            val topLeftY = gy - (gh / 2)
-
-            val rect = Rectangle2D.Float(topLeftX, topLeftY, gw, gh)
-            g.fill(rect)
+            drawStarPoint(g, x, y)
         }
+    }
+
+    private fun drawStarPoint(g: Graphics2D, x: Int, y: Int) {
+        val gx = playAreaX(x)
+        val gy = playAreaY(y)
+
+        val gh = PIXEL_SIZE * 3
+        val gw = PIXEL_SIZE * 4
+
+        val topLeftX = gx - (gw / 2)
+        val topLeftY = gy - (gh / 2)
+
+        val rect = Rectangle2D.Float(topLeftX, topLeftY, gw, gh)
+        g.fill(rect)
     }
 
     private fun drawPillars(g: Graphics2D) {
@@ -192,7 +201,65 @@ class Nes(
         }
     }
 
-    fun drawWhiteStone(
+    override fun clearPoint(g: Graphics2D, x: Int, y: Int) {
+        fun topLeftY(y: Int) = playAreaY(y) - (STONE_HEIGHT / 2)
+
+        val gx = playAreaX(x)
+        val gy = playAreaY(y)
+        val topLeftX = gx - (STONE_WIDTH / 2)
+        val topLeftY = gy - (STONE_HEIGHT / 2)
+
+        val playAreaStopX = playAreaX(boardWidth)
+        val playAreaStopY = playAreaY(boardHeight)
+
+        val offset = if (y < boardHeight) {
+            (topLeftY + STONE_HEIGHT) - topLeftY(y + 1)
+        } else {
+            0F
+        }
+
+        g.color = COLOR_GOBAN
+        val rect = Rectangle2D.Float(
+            topLeftX,
+            topLeftY,
+            STONE_WIDTH,
+            STONE_HEIGHT - offset
+        )
+
+        g.fill(rect)
+
+        val starPoints = if (boardWidth == boardHeight) {
+            starPoints(boardWidth)
+        } else {
+            emptySet()
+        }
+
+        if (SgfPoint(x, y) in starPoints) {
+            drawStarPoint(g, x, y)
+        }
+
+        g.color = COLOR_SHADOW
+        g.stroke = BasicStroke(PIXEL_SIZE)
+
+        val l1 = Line2D.Float(
+            gx,
+            max(topLeftY, playAreaStartY),
+            gx,
+            min(topLeftY + STONE_HEIGHT - 3 * offset, playAreaStopY)
+        )
+        g.draw(l1)
+
+        val l2 = Line2D.Float(
+            max(topLeftX, playAreaStartX),
+            gy,
+            min(gx + STONE_WIDTH - 2 * PIXEL_SIZE, playAreaStopX),
+            gy
+        )
+
+        g.draw(l2)
+    }
+
+    private fun drawWhiteStone(
         g: Graphics2D,
         x: Int,
         y: Int,
@@ -200,39 +267,110 @@ class Nes(
         val gx = playAreaX(x)
         val gy = playAreaY(y)
 
-        val stoneWidth = 7 * PIXEL_SIZE
-        val stoneHeight = 8 * PIXEL_SIZE
-
-        val topLeftX = gx - (stoneWidth / 2)
-        val topLeftY = gy - (stoneHeight / 2)
-
-        g.color = Color.BLACK
-        g.fill(
-            Rectangle2D.Float(
-                topLeftX + 2 * PIXEL_SIZE,
-                topLeftY + PIXEL_SIZE * 2,
-                5 * PIXEL_SIZE,
-                5 * PIXEL_SIZE
-            )
-        )
-        g.fill(
-            Rectangle2D.Float(
-                topLeftX + 2 * PIXEL_SIZE,
-                topLeftY + PIXEL_SIZE,
-                4 * PIXEL_SIZE,
-                7 * PIXEL_SIZE
-            )
-        )
+        val topLeftX = gx - (STONE_WIDTH / 2)
+        val topLeftY = gy - (STONE_HEIGHT / 2)
 
         g.color = Color.WHITE
-        g.fill(Rectangle2D.Float(topLeftX + 2 * PIXEL_SIZE, topLeftY, 3 * PIXEL_SIZE, 6 * PIXEL_SIZE))
-        g.fill(Rectangle2D.Float(topLeftX + PIXEL_SIZE, topLeftY + PIXEL_SIZE, 5 * PIXEL_SIZE, 5 * PIXEL_SIZE))
-        g.fill(Rectangle2D.Float(topLeftX + PIXEL_SIZE, topLeftY + PIXEL_SIZE, 4 * PIXEL_SIZE, 6 * PIXEL_SIZE))
-        g.fill(Rectangle2D.Float(topLeftX, topLeftY + PIXEL_SIZE * 2, stoneWidth, 3 * PIXEL_SIZE))
-        g.fill(Rectangle2D.Float(topLeftX, topLeftY + PIXEL_SIZE * 2, 5 * PIXEL_SIZE, 4 * PIXEL_SIZE))
+        val bg = Rectangle2D.Float(
+            topLeftX,
+            topLeftY,
+            STONE_WIDTH,
+            STONE_HEIGHT
+        )
+        g.fill(bg)
+
+        g.color = COLOR_GOBAN
+        g.fill(
+            Rectangle2D.Float(
+                topLeftX,
+                topLeftY,
+                2 * PIXEL_SIZE,
+                PIXEL_SIZE
+            )
+        )
+
+        g.fill(
+            Rectangle2D.Float(
+                topLeftX + STONE_WIDTH - 2 * PIXEL_SIZE,
+                topLeftY,
+                2 * PIXEL_SIZE,
+                PIXEL_SIZE
+            )
+        )
+
+        g.fill(
+            Rectangle2D.Float(
+                topLeftX,
+                topLeftY + PIXEL_SIZE,
+                PIXEL_SIZE,
+                PIXEL_SIZE
+            )
+        )
+
+        g.fill(
+            Rectangle2D.Float(
+                topLeftX + STONE_WIDTH - PIXEL_SIZE,
+                topLeftY + PIXEL_SIZE,
+                PIXEL_SIZE,
+                PIXEL_SIZE
+            )
+        )
+
+        g.fill(
+            Rectangle2D.Float(
+                topLeftX,
+                topLeftY + STONE_HEIGHT - PIXEL_SIZE,
+                PIXEL_SIZE * 2,
+                PIXEL_SIZE
+            )
+        )
+
+        g.fill(
+            Rectangle2D.Float(
+                topLeftX,
+                topLeftY + STONE_HEIGHT - 2 * PIXEL_SIZE,
+                PIXEL_SIZE,
+                PIXEL_SIZE
+            )
+        )
+        g.fill(
+            Rectangle2D.Float(
+                topLeftX + STONE_WIDTH - PIXEL_SIZE,
+                topLeftY + STONE_HEIGHT - PIXEL_SIZE,
+                PIXEL_SIZE,
+                PIXEL_SIZE
+            )
+        )
+
+        g.color = COLOR_SHADOW
+        g.fill(
+            Rectangle2D.Float(
+                topLeftX + STONE_WIDTH - PIXEL_SIZE,
+                topLeftY + STONE_HEIGHT - 3 * PIXEL_SIZE,
+                PIXEL_SIZE,
+                PIXEL_SIZE * 2
+            )
+        )
+
+        g.fill(
+            Rectangle2D.Float(
+                topLeftX + STONE_WIDTH - 2 * PIXEL_SIZE,
+                topLeftY + STONE_HEIGHT - 2 * PIXEL_SIZE,
+                PIXEL_SIZE * 2,
+                PIXEL_SIZE
+            )
+        )
+        g.fill(
+            Rectangle2D.Float(
+                topLeftX + 2 * PIXEL_SIZE,
+                topLeftY + STONE_HEIGHT - PIXEL_SIZE,
+                PIXEL_SIZE * 4,
+                PIXEL_SIZE
+            )
+        )
     }
 
-    fun drawBlackStone(
+    private fun drawBlackStone(
         g: Graphics2D,
         x: Int,
         y: Int
@@ -240,28 +378,66 @@ class Nes(
         val gx = playAreaX(x)
         val gy = playAreaY(y)
 
-        val stoneWidth = 7 * PIXEL_SIZE
-        val stoneHeight = 8 * PIXEL_SIZE
-
-        val topLeftX = gx - (stoneWidth / 2)
-        val topLeftY = gy - (stoneHeight / 2)
+        val topLeftX = gx - (STONE_WIDTH / 2)
+        val topLeftY = gy - (STONE_HEIGHT / 2)
 
         g.color = Color.BLACK
-        g.fill(Rectangle2D.Float(topLeftX + 2 * PIXEL_SIZE, topLeftY, 3 * PIXEL_SIZE, stoneHeight))
+        val bg = Rectangle2D.Float(topLeftX, topLeftY, STONE_WIDTH, STONE_HEIGHT)
+        g.fill(bg)
+
+        g.color = COLOR_GOBAN
+
+        g.fill(Rectangle2D.Float(topLeftX, topLeftY, 2 * PIXEL_SIZE, PIXEL_SIZE))
+        g.fill(Rectangle2D.Float(topLeftX + STONE_WIDTH - (2 * PIXEL_SIZE), topLeftY, 2 * PIXEL_SIZE, PIXEL_SIZE))
+
         g.fill(
             Rectangle2D.Float(
-                topLeftX + PIXEL_SIZE,
+                topLeftX,
                 topLeftY + PIXEL_SIZE,
-                5 * PIXEL_SIZE,
-                stoneHeight - 2 * PIXEL_SIZE
+                PIXEL_SIZE,
+                PIXEL_SIZE
             )
         )
         g.fill(
             Rectangle2D.Float(
+                topLeftX + STONE_WIDTH - PIXEL_SIZE,
+                topLeftY + PIXEL_SIZE,
+                PIXEL_SIZE,
+                PIXEL_SIZE
+            )
+        )
+
+        g.fill(
+            Rectangle2D.Float(
                 topLeftX,
-                topLeftY + 2 * PIXEL_SIZE,
-                7 * PIXEL_SIZE,
-                stoneHeight - 4 * PIXEL_SIZE
+                topLeftY + STONE_HEIGHT - PIXEL_SIZE,
+                2 * PIXEL_SIZE,
+                PIXEL_SIZE
+            )
+        )
+        g.fill(
+            Rectangle2D.Float(
+                topLeftX + STONE_WIDTH - (2 * PIXEL_SIZE),
+                topLeftY + STONE_HEIGHT - PIXEL_SIZE,
+                2 * PIXEL_SIZE,
+                PIXEL_SIZE
+            )
+        )
+
+        g.fill(
+            Rectangle2D.Float(
+                topLeftX,
+                topLeftY + STONE_HEIGHT - 2 * PIXEL_SIZE,
+                PIXEL_SIZE,
+                PIXEL_SIZE
+            )
+        )
+        g.fill(
+            Rectangle2D.Float(
+                topLeftX + STONE_WIDTH - PIXEL_SIZE,
+                topLeftY + STONE_HEIGHT - 2 * PIXEL_SIZE,
+                PIXEL_SIZE,
+                PIXEL_SIZE
             )
         )
 
@@ -275,8 +451,10 @@ class Nes(
         )
         g.fill(
             Rectangle2D.Float(
-                topLeftX + PIXEL_SIZE, topLeftY + 2 * PIXEL_SIZE,
-                PIXEL_SIZE, PIXEL_SIZE * 3
+                topLeftX + PIXEL_SIZE,
+                topLeftY + 2 * PIXEL_SIZE,
+                PIXEL_SIZE,
+                PIXEL_SIZE * 3
             )
         )
     }

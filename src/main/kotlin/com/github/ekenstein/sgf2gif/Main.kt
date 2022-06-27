@@ -60,7 +60,7 @@ private class SgfArgType : ArgType<SgfGameTree>(true) {
     }
 }
 
-private val parser = ArgParser("sgf2gif")
+private val parser = ArgParser("sgf2gif", useDefaultHelpShortName = false)
 private val sgf by parser.option(
     type = SgfArgType(),
     description = "The SGF-file to convert to a GIF",
@@ -78,7 +78,7 @@ private val output by parser.option(
 private val theme by parser.option(
     type = ArgType.Choice<Theme>(),
     fullName = "theme",
-    description = "The theme to render the board width"
+    description = "The theme to render the board with"
 ).default(Theme.NES)
 
 private val loop by parser.option(
@@ -91,12 +91,14 @@ private val loop by parser.option(
 private val width by parser.option(
     type = ArgType.Int,
     fullName = "width",
+    shortName = "w",
     description = "The width of the image."
 ).default(1000)
 
 private val height by parser.option(
     type = ArgType.Int,
     fullName = "height",
+    shortName = "h",
     description = "The height of the image."
 ).default(1000)
 
@@ -120,6 +122,13 @@ private val showMoveNumber by parser.option(
     description = "Whether each stone should be annotated with its move number or not."
 ).default(true)
 
+private val removeCapturedStones by parser.option(
+    type = ArgType.Boolean,
+    fullName = "remove-captured-stones",
+    shortName = "r",
+    description = "Whether captured stones should be removed from the board or not."
+).default(false)
+
 fun main(args: Array<String>) {
     parser.parse(args)
     val editor = SgfEditor(sgf)
@@ -131,10 +140,12 @@ fun main(args: Array<String>) {
     val outputFile = output.toFile()
     FileImageOutputStream(outputFile).use {
         val renderer = when (theme) {
-            Theme.Classic -> Classic(width, height, boardWidth, boardHeight, true)
+            Theme.Classic -> Classic(width, height, boardWidth, boardHeight, showMoveNumber)
             Theme.NES -> Nes(width, height, boardWidth, boardHeight)
         }
 
-        renderer.render(it, editor, width, height, delay.seconds, loop)
+        renderer.render(it, editor, width, height, delay.seconds, loop, removeCapturedStones)
     }
+
+    println("Exported the SGF to $output")
 }

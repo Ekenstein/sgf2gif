@@ -103,6 +103,10 @@ class Classic(
         }
     }
 
+    override fun clearPoint(g: Graphics2D, x: Int, y: Int) {
+        TODO("Not yet implemented")
+    }
+
     private fun drawIntersections(g: Graphics2D) {
         g.color = Color.BLACK
 
