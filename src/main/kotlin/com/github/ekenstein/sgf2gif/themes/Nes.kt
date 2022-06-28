@@ -51,6 +51,15 @@ class Nes(
     private val playAreaStartX = gobanStartX + playAreaOffsetX
     private val playAreaStartY = gobanStartY + playAreaOffsetY
 
+    private val stoneWidthPixels = 7F
+    private val stoneHeightPixels = 8F
+
+    private val pixelWidth = (intersectionWidth / stoneWidthPixels) * 0.90F
+    private val pixelHeight = (intersectionHeight / stoneHeightPixels) * 0.90F
+
+    private val stoneWidth = stoneWidthPixels * pixelWidth
+    private val stoneHeight = stoneHeightPixels * pixelHeight
+
     private fun playAreaX(x: Int): Float {
         return playAreaStartX + intersectionWidth * (x - 1)
     }
@@ -158,8 +167,8 @@ class Nes(
         val gx = playAreaX(x)
         val gy = playAreaY(y)
 
-        val gh = PIXEL_SIZE * 3
-        val gw = PIXEL_SIZE * 4
+        val gh = pixelHeight * 3
+        val gw = pixelWidth * 4
 
         val topLeftX = gx - (gw / 2)
         val topLeftY = gy - (gh / 2)
@@ -202,28 +211,20 @@ class Nes(
     }
 
     override fun clearPoint(g: Graphics2D, x: Int, y: Int) {
-        fun topLeftY(y: Int) = playAreaY(y) - (STONE_HEIGHT / 2)
-
         val gx = playAreaX(x)
         val gy = playAreaY(y)
-        val topLeftX = gx - (STONE_WIDTH / 2)
-        val topLeftY = gy - (STONE_HEIGHT / 2)
+        val topLeftX = gx - (stoneWidth / 2)
+        val topLeftY = gy - (stoneHeight / 2)
 
         val playAreaStopX = playAreaX(boardWidth)
         val playAreaStopY = playAreaY(boardHeight)
-
-        val offset = if (y < boardHeight) {
-            (topLeftY + STONE_HEIGHT) - topLeftY(y + 1)
-        } else {
-            0F
-        }
 
         g.color = COLOR_GOBAN
         val rect = Rectangle2D.Float(
             topLeftX,
             topLeftY,
-            STONE_WIDTH,
-            STONE_HEIGHT - offset
+            stoneWidth,
+            stoneHeight
         )
 
         g.fill(rect)
@@ -245,14 +246,14 @@ class Nes(
             gx,
             max(topLeftY, playAreaStartY),
             gx,
-            min(topLeftY + STONE_HEIGHT - 3 * offset, playAreaStopY)
+            min(topLeftY + stoneHeight, playAreaStopY)
         )
         g.draw(l1)
 
         val l2 = Line2D.Float(
             max(topLeftX, playAreaStartX),
             gy,
-            min(gx + STONE_WIDTH - 2 * PIXEL_SIZE, playAreaStopX),
+            min(topLeftX + stoneWidth, playAreaStopX),
             gy
         )
 
@@ -267,15 +268,15 @@ class Nes(
         val gx = playAreaX(x)
         val gy = playAreaY(y)
 
-        val topLeftX = gx - (STONE_WIDTH / 2)
-        val topLeftY = gy - (STONE_HEIGHT / 2)
+        val topLeftX = gx - (stoneWidth / 2)
+        val topLeftY = gy - (stoneHeight / 2)
 
         g.color = Color.WHITE
         val bg = Rectangle2D.Float(
             topLeftX,
             topLeftY,
-            STONE_WIDTH,
-            STONE_HEIGHT
+            stoneWidth,
+            stoneHeight
         )
         g.fill(bg)
 
@@ -284,88 +285,88 @@ class Nes(
             Rectangle2D.Float(
                 topLeftX,
                 topLeftY,
-                2 * PIXEL_SIZE,
-                PIXEL_SIZE
+                2 * pixelWidth,
+                pixelHeight
             )
         )
 
         g.fill(
             Rectangle2D.Float(
-                topLeftX + STONE_WIDTH - 2 * PIXEL_SIZE,
+                topLeftX + stoneWidth - 2 * pixelWidth,
                 topLeftY,
-                2 * PIXEL_SIZE,
-                PIXEL_SIZE
+                2 * pixelWidth,
+                pixelHeight
             )
         )
 
         g.fill(
             Rectangle2D.Float(
                 topLeftX,
-                topLeftY + PIXEL_SIZE,
-                PIXEL_SIZE,
-                PIXEL_SIZE
+                topLeftY + pixelHeight,
+                pixelWidth,
+                pixelHeight
             )
         )
 
         g.fill(
             Rectangle2D.Float(
-                topLeftX + STONE_WIDTH - PIXEL_SIZE,
-                topLeftY + PIXEL_SIZE,
-                PIXEL_SIZE,
-                PIXEL_SIZE
-            )
-        )
-
-        g.fill(
-            Rectangle2D.Float(
-                topLeftX,
-                topLeftY + STONE_HEIGHT - PIXEL_SIZE,
-                PIXEL_SIZE * 2,
-                PIXEL_SIZE
+                topLeftX + stoneWidth - pixelWidth,
+                topLeftY + pixelHeight,
+                pixelWidth,
+                pixelHeight
             )
         )
 
         g.fill(
             Rectangle2D.Float(
                 topLeftX,
-                topLeftY + STONE_HEIGHT - 2 * PIXEL_SIZE,
-                PIXEL_SIZE,
-                PIXEL_SIZE
+                topLeftY + stoneHeight - pixelHeight,
+                pixelWidth * 2,
+                pixelHeight
+            )
+        )
+
+        g.fill(
+            Rectangle2D.Float(
+                topLeftX,
+                topLeftY + stoneHeight - 2 * pixelHeight,
+                pixelWidth,
+                pixelHeight
             )
         )
         g.fill(
             Rectangle2D.Float(
-                topLeftX + STONE_WIDTH - PIXEL_SIZE,
-                topLeftY + STONE_HEIGHT - PIXEL_SIZE,
-                PIXEL_SIZE,
-                PIXEL_SIZE
+                topLeftX + stoneWidth - pixelWidth,
+                topLeftY + stoneHeight - pixelHeight,
+                pixelWidth,
+                pixelHeight
             )
         )
 
         g.color = COLOR_SHADOW
         g.fill(
             Rectangle2D.Float(
-                topLeftX + STONE_WIDTH - PIXEL_SIZE,
-                topLeftY + STONE_HEIGHT - 3 * PIXEL_SIZE,
-                PIXEL_SIZE,
-                PIXEL_SIZE * 2
+                topLeftX + stoneWidth - pixelWidth,
+                topLeftY + stoneHeight - 3 * pixelHeight,
+                pixelWidth,
+                pixelHeight * 2
             )
         )
 
         g.fill(
             Rectangle2D.Float(
-                topLeftX + STONE_WIDTH - 2 * PIXEL_SIZE,
-                topLeftY + STONE_HEIGHT - 2 * PIXEL_SIZE,
-                PIXEL_SIZE * 2,
-                PIXEL_SIZE
+                topLeftX + stoneWidth - 2 * pixelWidth,
+                topLeftY + stoneHeight - 2 * pixelHeight,
+                pixelWidth * 2,
+                pixelHeight
             )
         )
         g.fill(
             Rectangle2D.Float(
-                topLeftX + 2 * PIXEL_SIZE,
-                topLeftY + STONE_HEIGHT - PIXEL_SIZE,
-                PIXEL_SIZE * 4,
-                PIXEL_SIZE
+                topLeftX + 2 * pixelWidth,
+                topLeftY + stoneHeight - pixelHeight,
+                pixelWidth * 4,
+                pixelHeight
             )
         )
     }
@@ -378,83 +379,98 @@ class Nes(
         val gx = playAreaX(x)
         val gy = playAreaY(y)
 
-        val topLeftX = gx - (STONE_WIDTH / 2)
-        val topLeftY = gy - (STONE_HEIGHT / 2)
+        val topLeftX = gx - (stoneWidth / 2)
+        val topLeftY = gy - (stoneHeight / 2)
 
         g.color = Color.BLACK
-        val bg = Rectangle2D.Float(topLeftX, topLeftY, STONE_WIDTH, STONE_HEIGHT)
+        val bg = Rectangle2D.Float(topLeftX, topLeftY, stoneWidth, stoneHeight)
         g.fill(bg)
 
         g.color = COLOR_GOBAN
 
-        g.fill(Rectangle2D.Float(topLeftX, topLeftY, 2 * PIXEL_SIZE, PIXEL_SIZE))
-        g.fill(Rectangle2D.Float(topLeftX + STONE_WIDTH - (2 * PIXEL_SIZE), topLeftY, 2 * PIXEL_SIZE, PIXEL_SIZE))
-
         g.fill(
             Rectangle2D.Float(
                 topLeftX,
-                topLeftY + PIXEL_SIZE,
-                PIXEL_SIZE,
-                PIXEL_SIZE
+                topLeftY,
+                2 * pixelWidth,
+                pixelHeight
             )
         )
         g.fill(
             Rectangle2D.Float(
-                topLeftX + STONE_WIDTH - PIXEL_SIZE,
-                topLeftY + PIXEL_SIZE,
-                PIXEL_SIZE,
-                PIXEL_SIZE
-            )
-        )
-
-        g.fill(
-            Rectangle2D.Float(
-                topLeftX,
-                topLeftY + STONE_HEIGHT - PIXEL_SIZE,
-                2 * PIXEL_SIZE,
-                PIXEL_SIZE
-            )
-        )
-        g.fill(
-            Rectangle2D.Float(
-                topLeftX + STONE_WIDTH - (2 * PIXEL_SIZE),
-                topLeftY + STONE_HEIGHT - PIXEL_SIZE,
-                2 * PIXEL_SIZE,
-                PIXEL_SIZE
+                topLeftX + stoneWidth - (2 * pixelWidth),
+                topLeftY,
+                2 * pixelWidth,
+                pixelHeight
             )
         )
 
         g.fill(
             Rectangle2D.Float(
                 topLeftX,
-                topLeftY + STONE_HEIGHT - 2 * PIXEL_SIZE,
-                PIXEL_SIZE,
-                PIXEL_SIZE
+                topLeftY + pixelHeight,
+                pixelWidth,
+                pixelHeight
             )
         )
         g.fill(
             Rectangle2D.Float(
-                topLeftX + STONE_WIDTH - PIXEL_SIZE,
-                topLeftY + STONE_HEIGHT - 2 * PIXEL_SIZE,
-                PIXEL_SIZE,
-                PIXEL_SIZE
+                topLeftX + stoneWidth - pixelWidth,
+                topLeftY + pixelHeight,
+                pixelWidth,
+                pixelHeight
+            )
+        )
+
+        g.fill(
+            Rectangle2D.Float(
+                topLeftX,
+                topLeftY + stoneHeight - pixelHeight,
+                2 * pixelWidth,
+                pixelHeight
+            )
+        )
+        g.fill(
+            Rectangle2D.Float(
+                topLeftX + stoneWidth - (2 * pixelWidth),
+                topLeftY + stoneHeight - pixelHeight,
+                2 * pixelWidth,
+                pixelHeight
+            )
+        )
+
+        g.fill(
+            Rectangle2D.Float(
+                topLeftX,
+                topLeftY + stoneHeight - 2 * pixelHeight,
+                pixelWidth,
+                pixelHeight
+            )
+        )
+        g.fill(
+            Rectangle2D.Float(
+                topLeftX + stoneWidth - pixelWidth,
+                topLeftY + stoneHeight - 2 * pixelHeight,
+                pixelWidth,
+                pixelHeight
             )
         )
 
         g.color = Color.WHITE
         g.fill(
             Rectangle2D.Float(
-                topLeftX + PIXEL_SIZE * 2, topLeftY + PIXEL_SIZE,
-                PIXEL_SIZE,
-                PIXEL_SIZE
+                topLeftX + pixelWidth * 2,
+                topLeftY + pixelHeight,
+                pixelWidth,
+                pixelHeight
             )
         )
         g.fill(
             Rectangle2D.Float(
-                topLeftX + PIXEL_SIZE,
-                topLeftY + 2 * PIXEL_SIZE,
-                PIXEL_SIZE,
-                PIXEL_SIZE * 3
+                topLeftX + pixelWidth,
+                topLeftY + 2 * pixelHeight,
+                pixelWidth,
+                pixelHeight * 3
             )
         )
     }
