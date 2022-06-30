@@ -53,7 +53,9 @@ private class SgfArgType : ArgType<SgfGameTree>(true) {
         }
 
         return try {
-            SgfCollection.from(path).trees.head
+            SgfCollection.from(path) {
+                ignoreMalformedProperties = true
+            }.trees.head
         } catch (ex: SgfException.ParseError) {
             throw ParsingException("Option $name is expected to be a valid SGF file.")
         }

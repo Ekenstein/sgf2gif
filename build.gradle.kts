@@ -28,7 +28,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.Ekenstein", "haengma", "2.2.2")
+    implementation("com.github.Ekenstein", "haengma", "2.2.3")
     implementation("org.jetbrains.kotlinx", "kotlinx-cli", "0.3.4")
     testImplementation(kotlin("test"))
 }
