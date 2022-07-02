@@ -1,6 +1,8 @@
 # sgf2gif
 A program that converts an SGF-file to an animated GIF.
 
+The animated GIF is highly inspired by the classic game Hayauchi Super Igo for NES.
+
 ```shell
 Usage: sgf2gif options_list
 Options: 
