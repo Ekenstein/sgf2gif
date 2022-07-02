@@ -7,7 +7,6 @@ import com.github.ekenstein.sgf.editor.stay
 import com.github.ekenstein.sgf.editor.tryRepeat
 import com.github.ekenstein.sgf.utils.get
 import com.github.ekenstein.sgf.utils.orElse
-import com.github.ekenstein.sgf2gif.themes.Classic
 import com.github.ekenstein.sgf2gif.themes.Nes
 import kotlinx.cli.ArgParser
 import java.text.NumberFormat
@@ -31,7 +30,6 @@ fun main(args: Array<String>) {
     val outputFile = options.output.toFile()
     FileImageOutputStream(outputFile).use { outputStream ->
         val renderer = when (options.theme) {
-            Theme.Classic -> Classic(options.width, options.height, boardWidth, boardHeight, options.showMoveNumber)
             Theme.NES -> Nes(options.width, options.height, boardWidth, boardHeight)
         }
 
