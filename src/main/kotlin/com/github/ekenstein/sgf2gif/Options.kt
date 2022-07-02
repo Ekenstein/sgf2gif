@@ -68,19 +68,6 @@ class Options(parser: ArgParser) {
         shortName = "d",
         description = "The delay between frames in seconds."
     ).default(2)
-
-    val showMoveNumber by parser.option(
-        type = ArgType.Boolean,
-        fullName = "show-move-number",
-        description = "Whether each stone should be annotated with its move number or not."
-    ).default(false)
-
-    val removeCapturedStones by parser.option(
-        type = ArgType.Boolean,
-        fullName = "remove-captured-stones",
-        shortName = "r",
-        description = "Whether captured stones should be removed from the board or not."
-    ).default(false)
 }
 
 private class PathArgType : ArgType<Path>(true) {

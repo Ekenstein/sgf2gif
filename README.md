@@ -14,13 +14,11 @@ Options:
     --height, -h [1000] -> The height of the image. { Int }
     --move-number, -mn [2147483647] -> The move number up to which the animation will run to. { Int }
     --delay, -d [2] -> The delay between frames in seconds. { Int }
-    --show-move-number [false] -> Whether each stone should be annotated with its move number or not. 
-    --remove-captured-stones, -r [false] -> Whether captured stones should be removed from the board or not. 
     --help -> Usage info
 ```
 
 ### NES theme
 ```shell
-java -jar sgf2gif.jar -f ~/game.sgf -o ~/game.gif -r --theme nes
+java -jar sgf2gif.jar -f ~/game.sgf -o ~/game.gif --theme nes
 ```
 ![](https://github.com/Ekenstein/sgf2gif/blob/main/nes.gif?raw=true)

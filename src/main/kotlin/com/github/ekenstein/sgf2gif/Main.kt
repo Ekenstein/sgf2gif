@@ -40,7 +40,7 @@ fun main(args: Array<String>) {
             options.height,
             options.delay.seconds,
             options.loop,
-            options.removeCapturedStones
+            true
         ) {
             print("\r${percentageFormat.format(it)}")
         }
