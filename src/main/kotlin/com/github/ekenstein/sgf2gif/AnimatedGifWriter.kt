@@ -53,19 +53,26 @@ fun writeGif(outputStream: ImageOutputStream, delay: Duration, loop: Boolean, bl
         setAttribute("transparentColorIndex", "0")
     }
 
-    val appExtensionsNode = root.findOrAddNode("ApplicationExtensions")
-    val child = IIOMetadataNode("ApplicationExtension").apply {
-        setAttribute("applicationID", "NETSCAPE")
-        setAttribute("authenticationCode", "2.0")
+    root.findOrAddNode("CommentExtensions").apply {
+        setAttribute("CommentExtension", "Created by sgf2gif")
     }
 
-    val loopContinuously = if (loop) 0 else 1
-    child.userObject = byteArrayOf(
-        0x1,
-        (loopContinuously and 0xFF).toByte(),
-        (loopContinuously shr 8 and 0xFF).toByte()
-    )
-    appExtensionsNode.appendChild(child)
+    if (loop) {
+        val appExtensionsNode = root.findOrAddNode("ApplicationExtensions")
+        val child = IIOMetadataNode("ApplicationExtension").apply {
+            setAttribute("applicationID", "NETSCAPE")
+            setAttribute("authenticationCode", "2.0")
+        }
+
+        child.userObject = byteArrayOf(
+            0x1,
+            (0 and 0xFF).toByte(),
+            (0 shr 8 and 0xFF).toByte()
+        )
+
+        appExtensionsNode.appendChild(child)
+    }
+
     metaData.setFromTree(metaData.nativeMetadataFormatName, root)
 
     GifSequenceWriterImpl(writer, metaData).block()

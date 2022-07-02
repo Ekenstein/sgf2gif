@@ -10,7 +10,6 @@ import com.github.ekenstein.sgf.editor.goToRootNode
 import com.github.ekenstein.sgf.editor.placeStone
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
-import java.text.NumberFormat
 import javax.imageio.stream.ImageOutputStream
 import kotlin.time.Duration
 
@@ -26,8 +25,6 @@ interface BoardRenderer {
     fun clearPoint(g: Graphics2D, x: Int, y: Int)
 }
 
-private val percentageFormat: NumberFormat = NumberFormat.getPercentInstance()
-
 fun BoardRenderer.render(
     outputStream: ImageOutputStream,
     editor: SgfEditor,
@@ -35,7 +32,8 @@ fun BoardRenderer.render(
     height: Int,
     delay: Duration,
     loop: Boolean,
-    removeCapturedStones: Boolean
+    removeCapturedStones: Boolean,
+    progress: (Double) -> Unit
 ) {
     writeGif(outputStream, delay, loop) {
         add(
@@ -44,11 +42,12 @@ fun BoardRenderer.render(
             }
         )
 
-        val totalNumberOfMoves = editor.getMoveNumber()
+        val totalNumberOfMoves = editor.getMoveNumber().toDouble()
 
         tailrec fun addStones(move: Int, board: Board, stones: List<Stone>) {
-            val percentageDone = move / totalNumberOfMoves.toDouble()
-            print("\r${percentageFormat.format(percentageDone)}")
+            val percentageDone = move / totalNumberOfMoves
+            progress(percentageDone)
+
             val stone = stones.firstOrNull()
             if (stone != null) {
                 val updatedBoard = board.placeStone(stone.color, stone.point)
@@ -72,7 +71,6 @@ fun BoardRenderer.render(
         val stones = editor.getStones().reversed()
         val board = editor.goToRootNode().extractBoard()
         addStones(0, board, stones)
-        println()
     }
 }
 
