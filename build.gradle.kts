@@ -56,9 +56,10 @@ tasks {
     }
 
     dependencyUpdates {
-        rejectVersionIf(UpgradeToUnstableFilter())
+        rejectVersionIf {
+            UpgradeToUnstableFilter().reject(this) || IgnoredDependencyFilter().reject(this)
+        }
     }
-
     val dependencyUpdateSentinel = register<DependencyUpdateSentinel>("dependencyUpdateSentinel", buildDir)
     dependencyUpdateSentinel.configure {
         dependsOn(dependencyUpdates)
@@ -94,6 +95,16 @@ class UpgradeToUnstableFilter : ComponentFilter {
         val stableKeyword = setOf("RELEASE", "FINAL", "GA").any { version.toUpperCase().contains(it) }
         val stablePattern = version.matches(Regex("""^[0-9,.v-]+(-r)?$"""))
         return stableKeyword || stablePattern
+    }
+}
+
+class IgnoredDependencyFilter : ComponentFilter {
+    private val ignoredDependencies = mapOf(
+        "ktlint" to listOf("0.46.0", "0.46.1") // doesn't currently work.
+    )
+
+    override fun reject(p0: ComponentSelectionWithCurrent): Boolean {
+        return ignoredDependencies[p0.candidate.module].orEmpty().contains(p0.candidate.version)
     }
 }
 
