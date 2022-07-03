@@ -13,11 +13,7 @@ import java.awt.image.BufferedImage
 import javax.imageio.stream.ImageOutputStream
 import kotlin.time.Duration
 
-data class Stone(
-    val point: SgfPoint,
-    val color: SgfColor,
-    val moveNumber: Int?
-)
+data class Stone(val point: SgfPoint, val color: SgfColor)
 
 interface BoardRenderer {
     fun drawEmptyBoard(g: Graphics2D)
@@ -32,15 +28,18 @@ fun BoardRenderer.render(
     height: Int,
     delay: Duration,
     loop: Boolean,
-    removeCapturedStones: Boolean,
     progress: (Double) -> Unit
 ) {
     writeGif(outputStream, delay, loop) {
-        add(
-            image(width, height) { g ->
-                drawEmptyBoard(g)
+        val board = editor.goToRootNode().extractBoard()
+        val boardImage = image(width, height) { g ->
+            drawEmptyBoard(g)
+            board.stones.forEach { (point, color) ->
+                drawStone(g, Stone(point, color))
             }
-        )
+        }
+
+        addFrame(boardImage)
 
         val totalNumberOfMoves = editor.getMoveNumber().toDouble()
 
@@ -56,20 +55,17 @@ fun BoardRenderer.render(
                 val image = image(width, height) { g ->
                     drawStone(g, stone)
 
-                    if (removeCapturedStones) {
-                        capturedStones.forEach { (point, _) ->
-                            clearPoint(g, point.x, point.y)
-                        }
+                    capturedStones.forEach { (point, _) ->
+                        clearPoint(g, point.x, point.y)
                     }
                 }
 
-                add(image)
+                addFrame(image)
                 addStones(move + 1, updatedBoard, stones.drop(1))
             }
         }
 
-        val stones = editor.getStones().reversed()
-        val board = editor.goToRootNode().extractBoard()
+        val stones = editor.getMoves().reversed()
         addStones(0, board, stones)
     }
 }

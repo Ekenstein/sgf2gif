@@ -33,19 +33,10 @@ fun main(args: Array<String>) {
             Theme.NES -> Nes(options.width, options.height, boardWidth, boardHeight)
         }
 
-        renderer.render(
-            outputStream,
-            editor,
-            options.width,
-            options.height,
-            options.delay.seconds,
-            options.loop,
-            true
-        ) {
+        renderer.render(outputStream, editor, options.width, options.height, options.delay.seconds, options.loop) {
             print("\r${percentageFormat.format(it)}")
         }
-        println()
     }
 
-    println("Exported the SGF to ${options.output}")
+    println("\nExported the SGF to ${options.output}")
 }

@@ -5,7 +5,6 @@ import com.github.ekenstein.sgf.SgfColor
 import com.github.ekenstein.sgf.SgfPoint
 import com.github.ekenstein.sgf.SgfProperty
 import com.github.ekenstein.sgf.editor.SgfEditor
-import com.github.ekenstein.sgf.editor.getMoveNumber
 import com.github.ekenstein.sgf.editor.goToPreviousNode
 import com.github.ekenstein.sgf.editor.goToRootNode
 import com.github.ekenstein.sgf.utils.MoveResult
@@ -17,21 +16,19 @@ fun SgfEditor.boardSize() = goToRootNode().currentNode.property<SgfProperty.Root
     it.width to it.height
 } ?: (19 to 19)
 
-fun SgfEditor.getStones(): List<Stone> {
+fun SgfEditor.getMoves(): List<Stone> {
     tailrec fun SgfEditor.next(result: List<Stone>): List<Stone> {
-        val stones = currentNode.properties.flatMap { property ->
+        val stones = currentNode.properties.mapNotNull { property ->
             when (property) {
-                is SgfProperty.Setup.AB -> property.points.map { Stone(it, SgfColor.Black, null) }
-                is SgfProperty.Setup.AW -> property.points.map { Stone(it, SgfColor.White, null) }
                 is SgfProperty.Move.B -> when (val move = property.move) {
-                    Move.Pass -> emptyList()
-                    is Move.Stone -> listOf(Stone(move.point, SgfColor.Black, getMoveNumber()))
+                    Move.Pass -> null
+                    is Move.Stone -> Stone(move.point, SgfColor.Black)
                 }
                 is SgfProperty.Move.W -> when (val move = property.move) {
-                    Move.Pass -> emptyList()
-                    is Move.Stone -> listOf(Stone(move.point, SgfColor.White, getMoveNumber()))
+                    Move.Pass -> null
+                    is Move.Stone -> Stone(move.point, SgfColor.White)
                 }
-                else -> emptyList()
+                else -> null
             }
         }
 

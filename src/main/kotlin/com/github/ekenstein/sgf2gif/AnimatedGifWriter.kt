@@ -13,14 +13,14 @@ import kotlin.time.Duration
 import kotlin.time.DurationUnit
 
 interface GifSequenceWriter {
-    fun add(image: RenderedImage)
+    fun addFrame(image: RenderedImage)
 }
 
 private class GifSequenceWriterImpl(
     private val writer: ImageWriter,
     private val metaData: IIOMetadata,
 ) : GifSequenceWriter {
-    override fun add(image: RenderedImage) {
+    override fun addFrame(image: RenderedImage) {
         writer.writeToSequence(
             IIOImage(image, null, metaData),
             writer.defaultWriteParam
