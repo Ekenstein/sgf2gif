@@ -12,13 +12,14 @@ application {
 
 plugins {
     application
-    kotlin("jvm") version "1.7.0"
+    kotlin("jvm") version "1.7.10"
     id("org.jlleitschuh.gradle.ktlint") version "10.3.0"
     id("com.github.ben-manes.versions") version "0.42.0"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 group = "com.github.ekenstein"
-version = "0.3.1"
+version = "0.3.2"
 
 repositories {
     mavenCentral()
@@ -28,17 +29,20 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.Ekenstein", "haengma", "2.2.3")
+    implementation("com.github.Ekenstein", "haengma", "2.2.4")
     implementation("org.jetbrains.kotlinx", "kotlinx-cli", "0.3.4")
     testImplementation(kotlin("test"))
 }
 
 tasks {
+    shadowJar {
+        minimize()
+    }
     register<Copy>("packageDistribution") {
-        dependsOn("jar")
+        dependsOn("shadowJar")
         from("${project.rootDir}/scripts/${project.name}")
 
-        from("${project.projectDir}/build/libs/${project.name}.jar") {
+        from("${project.projectDir}/build/libs/${project.name}-${project.version}-all.jar") {
             into("lib")
         }
 
