@@ -61,8 +61,8 @@ class Classic(
     }
 
     override fun clearPoint(g: Graphics2D, x: Int, y: Int) {
-        val rectangleWidth = (intersectionWidth(canvasWidth, boardWidth) * 0.90).toInt()
-        val rectangleHeight = (intersectionHeight(canvasHeight, boardHeight) * 0.90).toInt()
+        val rectangleWidth = intersectionWidth(canvasWidth, boardWidth)
+        val rectangleHeight = intersectionHeight(canvasHeight, boardHeight)
         val middleX = boardX(x - 1, canvasWidth, boardWidth)
         val middleY = boardY(y - 1, canvasHeight, boardHeight)
         val topLeftX = middleX - (rectangleWidth / 2)
