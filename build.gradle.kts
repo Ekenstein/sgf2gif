@@ -35,9 +35,6 @@ dependencies {
 }
 
 tasks {
-    java {
-        targetCompatibility = JavaVersion.VERSION_18
-    }
     shadowJar {
         minimize()
     }
@@ -82,8 +79,12 @@ tasks {
         dependsOn(dependencyUpdateSentinel)
     }
 
+    withType<JavaCompile> {
+        targetCompatibility = "1.8"
+    }
+
     withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "18"
+        kotlinOptions.jvmTarget = "1.8"
     }
 }
 
