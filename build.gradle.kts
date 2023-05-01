@@ -12,14 +12,14 @@ application {
 
 plugins {
     application
-    kotlin("jvm") version "1.7.10"
-    id("org.jlleitschuh.gradle.ktlint") version "10.3.0"
-    id("com.github.ben-manes.versions") version "0.42.0"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    kotlin("jvm") version "1.8.21"
+    id("org.jlleitschuh.gradle.ktlint") version "11.3.2"
+    id("com.github.ben-manes.versions") version "0.46.0"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "com.github.ekenstein"
-version = "0.3.2"
+version = "0.4.0"
 
 repositories {
     mavenCentral()
@@ -29,8 +29,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.Ekenstein", "haengma", "2.2.4")
-    implementation("org.jetbrains.kotlinx", "kotlinx-cli", "0.3.4")
+    implementation("com.github.Ekenstein", "haengma", "2.2.6")
+    implementation("org.jetbrains.kotlinx", "kotlinx-cli", "0.3.5")
     testImplementation(kotlin("test"))
 }
 
@@ -79,6 +79,10 @@ tasks {
         dependsOn(dependencyUpdateSentinel)
     }
 
+    withType<JavaCompile> {
+        targetCompatibility = "1.8"
+    }
+
     withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "1.8"
     }
@@ -89,14 +93,17 @@ ktlint {
 }
 
 class UpgradeToUnstableFilter : ComponentFilter {
-    override fun reject(cs: ComponentSelectionWithCurrent) = reject(cs.currentVersion, cs.candidate.version)
+    override fun reject(candidate: ComponentSelectionWithCurrent) = reject(
+        candidate.currentVersion,
+        candidate.candidate.version
+    )
 
     private fun reject(old: String, new: String): Boolean {
         return !isStable(new) && isStable(old) // no unstable proposals for stable dependencies
     }
 
     private fun isStable(version: String): Boolean {
-        val stableKeyword = setOf("RELEASE", "FINAL", "GA").any { version.toUpperCase().contains(it) }
+        val stableKeyword = setOf("RELEASE", "FINAL", "GA").any { version.uppercase().contains(it) }
         val stablePattern = version.matches(Regex("""^[0-9,.v-]+(-r)?$"""))
         return stableKeyword || stablePattern
     }
@@ -104,11 +111,20 @@ class UpgradeToUnstableFilter : ComponentFilter {
 
 class IgnoredDependencyFilter : ComponentFilter {
     private val ignoredDependencies = mapOf(
-        "ktlint" to listOf("0.46.0", "0.46.1") // doesn't currently work.
+        "ktlint" to listOf(
+            "0.46.0",
+            "0.46.1",
+            "0.47.0",
+            "0.47.1",
+            "0.48.0",
+            "0.48.1",
+            "0.48.2",
+            "0.49.0"
+        ) // doesn't currently work.
     )
 
-    override fun reject(p0: ComponentSelectionWithCurrent): Boolean {
-        return ignoredDependencies[p0.candidate.module].orEmpty().contains(p0.candidate.version)
+    override fun reject(candidate: ComponentSelectionWithCurrent): Boolean {
+        return ignoredDependencies[candidate.candidate.module].orEmpty().contains(candidate.candidate.version)
     }
 }
 

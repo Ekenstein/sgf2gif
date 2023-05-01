@@ -9,6 +9,7 @@ import kotlinx.cli.ArgType
 import kotlinx.cli.ParsingException
 import kotlinx.cli.default
 import kotlinx.cli.required
+import java.io.File
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import kotlin.io.path.exists
@@ -23,10 +24,10 @@ class Options(parser: ArgParser) {
 
     val output by parser.option(
         type = PathArgType(),
-        description = "The destination file to write the GIF to.",
+        description = "The destination file to write the GIF to. (Optional)",
         shortName = "o",
         fullName = "output"
-    ).required()
+    )
 
     val theme by parser.option(
         type = ArgType.Choice<Theme>(),
@@ -83,25 +84,26 @@ private class PathArgType : ArgType<Path>(true) {
     }
 }
 
-private class SgfArgType : ArgType<SgfGameTree>(true) {
+private class SgfArgType : ArgType<Pair<File, SgfGameTree>>(true) {
     override val description: kotlin.String
         get() = ""
 
-    override fun convert(value: kotlin.String, name: kotlin.String): SgfGameTree {
-        val path = try {
-            Path.of(value)
-        } catch (ex: InvalidPathException) {
-            throw ParsingException("Option $name is expected to be a path. $value is provided.")
-        }
+    override fun convert(value: kotlin.String, name: kotlin.String): Pair<File, SgfGameTree> {
+        val file = File(value)
 
-        if (!path.exists()) {
-            throw ParsingException("Option $name is expected to exist. The path was $path")
+        if (!file.exists()) {
+            throw ParsingException("Option $name is expected to exist. The path was $value")
         }
 
         return try {
-            SgfCollection.from(path) {
-                ignoreMalformedProperties = true
-            }.trees.head
+            val collection = file.inputStream().use { inputStream ->
+                SgfCollection.from(inputStream) {
+                    ignoreMalformedProperties = true
+                }
+            }
+
+            val tree = collection.trees.head
+            file to tree
         } catch (ex: SgfException.ParseError) {
             throw ParsingException("Option $name is expected to be a valid SGF file.")
         }

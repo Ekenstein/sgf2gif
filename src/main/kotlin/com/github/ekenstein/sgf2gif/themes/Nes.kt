@@ -2,7 +2,7 @@ package com.github.ekenstein.sgf2gif.themes
 
 import com.github.ekenstein.sgf.SgfColor
 import com.github.ekenstein.sgf.SgfPoint
-import com.github.ekenstein.sgf2gif.BoardRenderer
+import com.github.ekenstein.sgf2gif.BoardTheme
 import com.github.ekenstein.sgf2gif.Stone
 import com.github.ekenstein.sgf2gif.starPoints
 import java.awt.BasicStroke
@@ -32,7 +32,7 @@ class Nes(
     private val height: Int,
     private val boardWidth: Int,
     private val boardHeight: Int
-) : BoardRenderer {
+) : BoardTheme {
     private val gobanWidth = BOARD_SCALE * width
     private val gobanHeight = BOARD_SCALE * height
     private val gobanThickness = gobanHeight * BOARD_THICKNESS_FACTOR
