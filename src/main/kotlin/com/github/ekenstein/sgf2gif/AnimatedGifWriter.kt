@@ -78,6 +78,7 @@ fun writeGif(outputStream: ImageOutputStream, delay: Duration, loop: Boolean, bl
     GifSequenceWriterImpl(writer, metaData).block()
     writer.endWriteSequence()
     writer.dispose()
+    outputStream.flush()
 }
 
 private fun IIOMetadataNode.findOrAddNode(name: String) = nodes.firstOrNull { it.nodeName.equals(name, true) }
