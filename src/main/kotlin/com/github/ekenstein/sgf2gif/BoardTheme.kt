@@ -3,15 +3,13 @@ package com.github.ekenstein.sgf2gif
 import com.github.ekenstein.sgf.SgfColor
 import com.github.ekenstein.sgf.SgfPoint
 import com.github.ekenstein.sgf.editor.Board
-import com.github.ekenstein.sgf.editor.SgfEditor
 import com.github.ekenstein.sgf.editor.extractBoard
-import com.github.ekenstein.sgf.editor.getMoveNumber
 import com.github.ekenstein.sgf.editor.goToRootNode
 import com.github.ekenstein.sgf.editor.placeStone
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
 import javax.imageio.stream.ImageOutputStream
-import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 data class Stone(val point: SgfPoint, val color: SgfColor)
 
@@ -23,16 +21,11 @@ interface BoardTheme {
 
 fun BoardTheme.render(
     outputStream: ImageOutputStream,
-    editor: SgfEditor,
-    width: Int,
-    height: Int,
-    delay: Duration,
-    loop: Boolean,
-    progress: (Double) -> Unit
+    options: Options
 ) {
-    writeGif(outputStream, delay, loop) {
-        val board = editor.goToRootNode().extractBoard()
-        val boardImage = image(width, height) { g ->
+    writeGif(outputStream, options.delay.seconds, options.loop) {
+        val board = options.sgf.goToRootNode().extractBoard()
+        val boardImage = image(options.width, options.height) { g ->
             drawEmptyBoard(g)
             board.stones.forEach { (point, color) ->
                 drawStone(g, Stone(point, color))
@@ -41,18 +34,13 @@ fun BoardTheme.render(
 
         addFrame(boardImage)
 
-        val totalNumberOfMoves = editor.getMoveNumber().toDouble()
-
         tailrec fun addStones(move: Int, board: Board, stones: List<Stone>) {
-            val percentageDone = move / totalNumberOfMoves
-            progress(percentageDone)
-
             val stone = stones.firstOrNull()
             if (stone != null) {
                 val updatedBoard = board.placeStone(stone.color, stone.point)
                 val capturedStones = board.stones - updatedBoard.stones.keys
 
-                val image = image(width, height) { g ->
+                val image = image(options.width, options.height) { g ->
                     drawStone(g, stone)
 
                     capturedStones.forEach { (point, _) ->
@@ -65,7 +53,7 @@ fun BoardTheme.render(
             }
         }
 
-        val stones = editor.getMoves().reversed()
+        val stones = options.sgf.getMoves().reversed()
         addStones(0, board, stones)
     }
 }
