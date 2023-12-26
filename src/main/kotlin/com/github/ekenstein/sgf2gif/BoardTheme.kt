@@ -15,7 +15,7 @@ data class Stone(val point: SgfPoint, val color: SgfColor)
 
 interface BoardTheme {
     fun drawEmptyBoard(g: Graphics2D)
-    fun drawStone(g: Graphics2D, stone: Stone)
+    fun drawStone(g: Graphics2D, stone: Stone, drawMarker: Boolean)
     fun clearPoint(g: Graphics2D, x: Int, y: Int)
 }
 
@@ -28,7 +28,7 @@ fun BoardTheme.render(
         val boardImage = image(options.width, options.height) { g ->
             drawEmptyBoard(g)
             board.stones.forEach { (point, color) ->
-                drawStone(g, Stone(point, color))
+                drawStone(g, Stone(point, color), false)
             }
         }
 
@@ -41,7 +41,7 @@ fun BoardTheme.render(
                 val capturedStones = board.stones - updatedBoard.stones.keys
 
                 val image = image(options.width, options.height) { g ->
-                    drawStone(g, stone)
+                    drawStone(g, stone, options.showMarker)
 
                     capturedStones.forEach { (point, _) ->
                         clearPoint(g, point.x, point.y)

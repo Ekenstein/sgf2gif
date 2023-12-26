@@ -5,6 +5,7 @@ import com.github.ekenstein.sgf.SgfPoint
 import com.github.ekenstein.sgf2gif.BoardTheme
 import com.github.ekenstein.sgf2gif.Stone
 import com.github.ekenstein.sgf2gif.starPoints
+import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics2D
 import kotlin.math.max
@@ -19,6 +20,8 @@ class Classic(
     private val boardHeight: Int
 ) : BoardTheme {
     private val boardColor = Color.WHITE
+
+    private var currentMarkedStone: Stone? = null
 
     override fun drawEmptyBoard(g: Graphics2D) {
         g.color = boardColor
@@ -35,7 +38,7 @@ class Classic(
         }
     }
 
-    override fun drawStone(g: Graphics2D, stone: Stone) {
+    override fun drawStone(g: Graphics2D, stone: Stone, drawMarker: Boolean) {
         val middleX = boardX(stone.point.x - 1, canvasWidth, boardWidth)
         val middleY = boardY(stone.point.y - 1, canvasHeight, boardHeight)
 
@@ -58,6 +61,41 @@ class Classic(
                 g.drawOval(topLeftX, topLeftY, circleWidth, circleHeight)
             }
         }
+
+        if (drawMarker) {
+            drawMarker(g, stone)
+        }
+    }
+
+    private fun clearMarker(g: Graphics2D, stone: Stone) {
+        drawStone(g, stone, false)
+    }
+
+    private fun drawMarker(g: Graphics2D, stone: Stone) {
+        val middleX = boardX(stone.point.x - 1, canvasWidth, boardWidth)
+        val middleY = boardY(stone.point.y - 1, canvasHeight, boardHeight)
+
+        val circleWidth = (intersectionWidth(canvasWidth, boardWidth) * 0.80).toInt()
+        val circleHeight = (intersectionHeight(canvasHeight, boardHeight) * 0.80).toInt()
+
+        val topLeftX = middleX - (circleWidth / 2)
+        val topLeftY = middleY - (circleHeight / 2)
+
+        val lineColor = when (stone.color) {
+            SgfColor.Black -> Color.WHITE
+            SgfColor.White -> Color.BLACK
+        }
+
+        when (val markedStone = currentMarkedStone) {
+            null -> { }
+            else -> clearMarker(g, markedStone)
+        }
+
+        g.color = lineColor
+        g.stroke = BasicStroke(4F)
+        g.drawOval(topLeftX, topLeftY, circleWidth, circleHeight)
+
+        currentMarkedStone = stone
     }
 
     override fun clearPoint(g: Graphics2D, x: Int, y: Int) {

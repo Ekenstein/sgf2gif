@@ -18,7 +18,7 @@ interface GifSequenceWriter {
 
 private class GifSequenceWriterImpl(
     private val writer: ImageWriter,
-    private val metaData: IIOMetadata,
+    private val metaData: IIOMetadata
 ) : GifSequenceWriter {
     override fun addFrame(image: RenderedImage) {
         writer.writeToSequence(
