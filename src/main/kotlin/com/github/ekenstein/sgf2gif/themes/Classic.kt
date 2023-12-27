@@ -5,8 +5,10 @@ import com.github.ekenstein.sgf.SgfPoint
 import com.github.ekenstein.sgf2gif.BoardTheme
 import com.github.ekenstein.sgf2gif.Stone
 import com.github.ekenstein.sgf2gif.starPoints
+import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics2D
+import java.awt.RenderingHints
 import kotlin.math.max
 import kotlin.math.min
 
@@ -19,6 +21,8 @@ class Classic(
     private val boardHeight: Int
 ) : BoardTheme {
     private val boardColor = Color.WHITE
+
+    private var currentMarkedStone: Stone? = null
 
     override fun drawEmptyBoard(g: Graphics2D) {
         g.color = boardColor
@@ -35,7 +39,7 @@ class Classic(
         }
     }
 
-    override fun drawStone(g: Graphics2D, stone: Stone) {
+    override fun drawStone(g: Graphics2D, stone: Stone, drawMarker: Boolean) {
         val middleX = boardX(stone.point.x - 1, canvasWidth, boardWidth)
         val middleY = boardY(stone.point.y - 1, canvasHeight, boardHeight)
 
@@ -55,9 +59,47 @@ class Classic(
                 g.fillOval(topLeftX, topLeftY, circleWidth, circleHeight)
 
                 g.color = Color.BLACK
+                g.stroke = BasicStroke(1F)
                 g.drawOval(topLeftX, topLeftY, circleWidth, circleHeight)
             }
         }
+
+        if (drawMarker) {
+            drawMarker(g, stone)
+        }
+    }
+
+    private fun clearMarker(g: Graphics2D, stone: Stone) {
+        drawStone(g, stone, false)
+    }
+
+    private fun drawMarker(g: Graphics2D, stone: Stone) {
+        val middleX = boardX(stone.point.x - 1, canvasWidth, boardWidth)
+        val middleY = boardY(stone.point.y - 1, canvasHeight, boardHeight)
+
+        val markerWidthFactor = 0.55
+        val circleWidth = (intersectionWidth(canvasWidth, boardWidth) * markerWidthFactor).toInt()
+        val circleHeight = (intersectionHeight(canvasHeight, boardHeight) * markerWidthFactor).toInt()
+
+        val topLeftX = middleX - (circleWidth / 2)
+        val topLeftY = middleY - (circleHeight / 2)
+
+        val lineColor = when (stone.color) {
+            SgfColor.Black -> Color.WHITE
+            SgfColor.White -> Color.BLACK
+        }
+
+        when (val markedStone = currentMarkedStone) {
+            null -> { }
+            else -> clearMarker(g, markedStone)
+        }
+
+        g.color = lineColor
+        g.stroke = BasicStroke(3F)
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+        g.drawOval(topLeftX, topLeftY, circleWidth, circleHeight)
+
+        currentMarkedStone = stone
     }
 
     override fun clearPoint(g: Graphics2D, x: Int, y: Int) {
@@ -82,6 +124,7 @@ class Classic(
             drawStarPoint(g, point)
         }
 
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         g.color = Color.BLACK
         g.drawLine(
             max(xOffset(canvasWidth), middleX - (rectangleWidth / 2)),
@@ -109,6 +152,7 @@ class Classic(
         val topLeftY = middleY - (circleHeight / 2)
 
         g.color = Color.BLACK
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         g.fillOval(topLeftX, topLeftY, circleWidth, circleHeight)
     }
 
@@ -120,7 +164,7 @@ class Classic(
         val intersectionWidth = intersectionWidth(canvasWidth, boardWidth)
 
         g.color = Color.BLACK
-
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         repeat(boardWidth) { x ->
             val gx = boardX(x, canvasWidth, boardWidth)
             g.drawLine(gx, yOffset, gx, yOffset + (intersectionHeight * (boardHeight - 1)))

@@ -23,6 +23,7 @@ import java.nio.file.InvalidPathException
 const val DEFAULT_WIDTH = 1000
 const val DEFAULT_HEIGHT = 1000
 const val DEFAULT_DELAY_IN_SECONDS = 2
+const val DEFAULT_SHOW_MARKER = false
 const val DEFAULT_LOOP = false
 
 class Options private constructor(parser: ArgParser) {
@@ -52,6 +53,12 @@ class Options private constructor(parser: ArgParser) {
         shortName = "l",
         description = "Whether the animation should be looped or not"
     ).default(DEFAULT_LOOP)
+
+    val showMarker by parser.option(
+        type = ArgType.Boolean,
+        fullName = "show-marker",
+        description = "Whether the last move should be marked or not"
+    ).default(DEFAULT_SHOW_MARKER)
 
     val width by parser.option(
         type = ArgType.Int,

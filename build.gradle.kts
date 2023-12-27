@@ -12,14 +12,14 @@ application {
 
 plugins {
     application
-    kotlin("jvm") version "1.8.21"
-    id("org.jlleitschuh.gradle.ktlint") version "11.3.2"
-    id("com.github.ben-manes.versions") version "0.46.0"
+    kotlin("jvm") version "1.9.22"
+    id("org.jlleitschuh.gradle.ktlint") version "12.0.3"
+    id("com.github.ben-manes.versions") version "0.50.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "com.github.ekenstein"
-version = "0.4.1"
+version = "0.4.2"
 
 repositories {
     mavenCentral()
@@ -30,7 +30,7 @@ repositories {
 
 dependencies {
     implementation("com.github.Ekenstein", "haengma", "2.2.6")
-    implementation("org.jetbrains.kotlinx", "kotlinx-cli", "0.3.5")
+    implementation("org.jetbrains.kotlinx", "kotlinx-cli", "0.3.6")
     testImplementation(kotlin("test"))
 }
 
@@ -89,7 +89,7 @@ tasks {
 }
 
 ktlint {
-    version.set("0.45.2")
+    version.set("0.47.1")
 }
 
 class UpgradeToUnstableFilter : ComponentFilter {
