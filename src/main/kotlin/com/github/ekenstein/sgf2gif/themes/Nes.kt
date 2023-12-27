@@ -7,7 +7,6 @@ import com.github.ekenstein.sgf2gif.Stone
 import com.github.ekenstein.sgf2gif.starPoints
 import java.awt.BasicStroke
 import java.awt.Color
-import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.geom.Line2D
 import java.awt.geom.Rectangle2D

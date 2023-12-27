@@ -8,6 +8,7 @@ import com.github.ekenstein.sgf2gif.starPoints
 import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics2D
+import java.awt.RenderingHints
 import kotlin.math.max
 import kotlin.math.min
 
@@ -58,6 +59,7 @@ class Classic(
                 g.fillOval(topLeftX, topLeftY, circleWidth, circleHeight)
 
                 g.color = Color.BLACK
+                g.stroke = BasicStroke(1F)
                 g.drawOval(topLeftX, topLeftY, circleWidth, circleHeight)
             }
         }
@@ -75,8 +77,9 @@ class Classic(
         val middleX = boardX(stone.point.x - 1, canvasWidth, boardWidth)
         val middleY = boardY(stone.point.y - 1, canvasHeight, boardHeight)
 
-        val circleWidth = (intersectionWidth(canvasWidth, boardWidth) * 0.80).toInt()
-        val circleHeight = (intersectionHeight(canvasHeight, boardHeight) * 0.80).toInt()
+        val markerWidthFactor = 0.55
+        val circleWidth = (intersectionWidth(canvasWidth, boardWidth) * markerWidthFactor).toInt()
+        val circleHeight = (intersectionHeight(canvasHeight, boardHeight) * markerWidthFactor).toInt()
 
         val topLeftX = middleX - (circleWidth / 2)
         val topLeftY = middleY - (circleHeight / 2)
@@ -92,7 +95,8 @@ class Classic(
         }
 
         g.color = lineColor
-        g.stroke = BasicStroke(4F)
+        g.stroke = BasicStroke(3F)
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         g.drawOval(topLeftX, topLeftY, circleWidth, circleHeight)
 
         currentMarkedStone = stone
@@ -120,6 +124,7 @@ class Classic(
             drawStarPoint(g, point)
         }
 
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         g.color = Color.BLACK
         g.drawLine(
             max(xOffset(canvasWidth), middleX - (rectangleWidth / 2)),
@@ -147,6 +152,7 @@ class Classic(
         val topLeftY = middleY - (circleHeight / 2)
 
         g.color = Color.BLACK
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         g.fillOval(topLeftX, topLeftY, circleWidth, circleHeight)
     }
 
@@ -158,7 +164,7 @@ class Classic(
         val intersectionWidth = intersectionWidth(canvasWidth, boardWidth)
 
         g.color = Color.BLACK
-
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         repeat(boardWidth) { x ->
             val gx = boardX(x, canvasWidth, boardWidth)
             g.drawLine(gx, yOffset, gx, yOffset + (intersectionHeight * (boardHeight - 1)))
