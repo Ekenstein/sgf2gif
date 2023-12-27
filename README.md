@@ -45,6 +45,6 @@ java -jar sgf2gif.jar < ~/game.sgf > ~/game.gif
 ### Showing markers
 By adding the --show-marker flag, each move made in the animation will have a marker on it
 ```shell
-java -jar sgf2gif.jar < ~/game.sgf > ~/game.gif --show-marker
+java -jar sgf2gif.jar --show-marker < ~/game.sgf > ~/game.gif
 ```
 ![](./nes-with-marker.gif)
