@@ -33,3 +33,4 @@ build
 !.idea/codeStyles
 *.iml
 out
+.idea
