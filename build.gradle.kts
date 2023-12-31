@@ -19,7 +19,7 @@ plugins {
 }
 
 group = "com.github.ekenstein"
-version = "0.4.2"
+version = "0.4.3"
 
 repositories {
     mavenCentral()
