@@ -10,7 +10,6 @@ import javax.imageio.metadata.IIOMetadata
 import javax.imageio.metadata.IIOMetadataNode
 import javax.imageio.stream.ImageOutputStream
 import kotlin.time.Duration
-import kotlin.time.DurationUnit
 
 interface GifSequenceWriter {
     fun addFrame(image: RenderedImage)
@@ -45,32 +44,18 @@ fun writeGif(outputStream: ImageOutputStream, delay: Duration, loop: Boolean, bl
     )
 
     val root = metaData.getAsTree(metaData.nativeMetadataFormatName) as IIOMetadataNode
-    root.findOrAddNode("GraphicControlExtension").apply {
-        setAttribute("disposalMethod", "none")
-        setAttribute("userInputFlag", "FALSE")
-        setAttribute("transparentColorFlag", "FALSE")
-        setAttribute("delayTime", (delay.toLong(DurationUnit.MILLISECONDS) / 10).toString())
-        setAttribute("transparentColorIndex", "0")
-    }
-
-    root.findOrAddNode("CommentExtensions").apply {
-        setAttribute("CommentExtension", "Created by sgf2gif")
-    }
-
-    if (loop) {
-        val appExtensionsNode = root.findOrAddNode("ApplicationExtensions")
-        val child = IIOMetadataNode("ApplicationExtension").apply {
-            setAttribute("applicationID", "NETSCAPE")
-            setAttribute("authenticationCode", "2.0")
+    GifMetadata(root).apply {
+        graphicControlExtension.apply {
+            disposalMethod = DisposalMethod.None
+            userInputFlag = false
+            transparentColorFlag = false
+            delayTime = delay
+            transparentColorIndex = 0
         }
 
-        child.userObject = byteArrayOf(
-            0x1,
-            (0 and 0xFF).toByte(),
-            (0 shr 8 and 0xFF).toByte()
-        )
-
-        appExtensionsNode.appendChild(child)
+        if (loop) {
+            setLooping()
+        }
     }
 
     metaData.setFromTree(metaData.nativeMetadataFormatName, root)
@@ -80,20 +65,3 @@ fun writeGif(outputStream: ImageOutputStream, delay: Duration, loop: Boolean, bl
     writer.dispose()
     outputStream.flush()
 }
-
-private fun IIOMetadataNode.findOrAddNode(name: String) = nodes.firstOrNull { it.nodeName.equals(name, true) }
-    ?: addNode(name)
-
-private fun IIOMetadataNode.addNode(name: String): IIOMetadataNode {
-    val node = IIOMetadataNode(name)
-    appendChild(node)
-    return node
-}
-
-private val IIOMetadataNode.nodes
-    get() = sequence {
-        for (i in 0 until length) {
-            val item = item(i) as IIOMetadataNode
-            yield(item)
-        }
-    }

@@ -21,7 +21,7 @@ class GenerationTest {
 
     @Test
     fun `generate NES themed gif`() {
-        val data = generate(arrayOf("--theme", "NES", "--show-marker"))
+        val data = generate(arrayOf("--theme", "NES", "--show-marker", "--loop"))
         val file = FileOutputStream("C:\\temp\\nes.gif")
 
         data.writeTo(file)
@@ -29,7 +29,7 @@ class GenerationTest {
 
     @Test
     fun `generate classic themed gif`() {
-        val data = generate(arrayOf("--theme", "classic", "--show-marker"))
+        val data = generate(arrayOf("--theme", "classic", "--show-marker", "--delay", "0.1"))
         val file = FileOutputStream("C:\\temp\\classic.gif")
 
         data.writeTo(file)

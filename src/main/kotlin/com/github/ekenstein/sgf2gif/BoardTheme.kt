@@ -9,7 +9,6 @@ import com.github.ekenstein.sgf.editor.placeStone
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
 import javax.imageio.stream.ImageOutputStream
-import kotlin.time.Duration.Companion.seconds
 
 data class Stone(val point: SgfPoint, val color: SgfColor)
 
@@ -23,7 +22,7 @@ fun BoardTheme.render(
     outputStream: ImageOutputStream,
     options: Options
 ) {
-    writeGif(outputStream, options.delay.seconds, options.loop) {
+    writeGif(outputStream, options.delay, options.loop) {
         val board = options.sgf.goToRootNode().extractBoard()
         val boardImage = image(options.width, options.height) { g ->
             drawEmptyBoard(g)
