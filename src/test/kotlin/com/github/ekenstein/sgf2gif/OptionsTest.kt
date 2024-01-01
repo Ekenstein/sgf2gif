@@ -34,18 +34,18 @@ class OptionsTest {
     @Test
     fun `omitting delay will default to 2 seconds`() {
         val options = Options.parse(emptyArray())
-        assertEquals(2.0.seconds, options.delay)
+        assertEquals(2.0.seconds, options.delayBetweenFrames)
     }
 
     @Test
     fun `can express delay as a double`() {
         val options = Options.parse(arrayOf("--delay", "0.1"))
-        assertEquals(0.1.seconds, options.delay)
+        assertEquals(0.1.seconds, options.delayBetweenFrames)
     }
 
     @Test
     fun `can express delay as an integer`() {
         val options = Options.parse(arrayOf("--delay", "1"))
-        assertEquals(1.seconds, options.delay)
+        assertEquals(1.seconds, options.delayBetweenFrames)
     }
 }

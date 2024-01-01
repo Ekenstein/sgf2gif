@@ -22,7 +22,7 @@ fun BoardTheme.render(
     outputStream: ImageOutputStream,
     options: Options
 ) {
-    writeGif(outputStream, options.delay, options.loop) {
+    writeGif(outputStream, options.delayBetweenFrames, options.loop) {
         val board = options.sgf.goToRootNode().extractBoard()
         val boardImage = image(options.width, options.height) { g ->
             drawEmptyBoard(g)

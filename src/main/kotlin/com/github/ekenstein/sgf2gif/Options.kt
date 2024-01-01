@@ -19,7 +19,6 @@ import kotlinx.cli.default
 import java.io.File
 import java.io.InputStream
 import java.nio.file.InvalidPathException
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 const val DEFAULT_WIDTH = 1000
@@ -83,12 +82,16 @@ class Options private constructor(parser: ArgParser) {
         description = "The move number up to which the animation will run to."
     ).default(Int.MAX_VALUE)
 
-    val delay by parser.option(
-        type = DurationArgType(),
+    private val delay by parser.option(
+        type = ArgType.Double,
         fullName = "delay",
         shortName = "d",
         description = "The delay between frames in seconds."
-    ).default(DEFAULT_DELAY_IN_SECONDS.seconds)
+    ).default(DEFAULT_DELAY_IN_SECONDS)
+
+    val delayBetweenFrames by lazy {
+        delay.seconds
+    }
 
     val sgf by lazy {
         val sgf = when (val file = inputFile) {
@@ -134,20 +137,6 @@ private class FileArgType(private val requireExist: kotlin.Boolean) : ArgType<Fi
         } catch (ex: InvalidPathException) {
             throw ParsingException("Option $name is expected to be a path. $value is provided.")
         }
-    }
-}
-
-private class DurationArgType : ArgType<Duration>(true) {
-    override val description: kotlin.String
-        get() = "The duration in seconds"
-
-    override fun convert(value: kotlin.String, name: kotlin.String): Duration = try {
-        val delayInSeconds = value.toDoubleOrNull()
-            ?: throw ParsingException("Option $name must be expressed as a number.")
-
-        delayInSeconds.seconds
-    } catch (ex: IllegalArgumentException) {
-        throw ParsingException("Option $name must be expressed as a number.")
     }
 }
 
