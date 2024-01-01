@@ -14,7 +14,7 @@ Options:
     --width, -w [1000] -> The width of the image. { Int }
     --height, -h [1000] -> The height of the image. { Int }
     --move-number, -mn [2147483647] -> The move number up to which the animation will run to. { Int }
-    --delay, -d [2] -> The delay between frames in seconds. { Int }
+    --delay, -d [2.0] -> The delay between frames in seconds. { Double }
     --help -> Usage info
 ```
 
