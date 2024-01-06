@@ -12,20 +12,19 @@ import java.awt.geom.Line2D
 import java.awt.geom.Rectangle2D
 import java.lang.Float.max
 import java.lang.Float.min
+import kotlin.math.ceil
 
 private val COLOR_SHADOW = Color.BLACK
 private val COLOR_GOBAN = Color(162, 92, 0, 255)
 private val COLOR_BACKGROUND = Color(0, 79, 92, 255)
 
-private const val PIXEL_SIZE = 5F
-private const val PILLAR_HEIGHT = 7 * PIXEL_SIZE
 private const val BOARD_THICKNESS_FACTOR = 0.13F
 private const val PERSPECTIVE_FACTOR = 0.01F
 private const val BOARD_SCALE = 0.90F
 private const val SHADOW_OFFSET_FACTOR = 0.7F
 private const val PLAY_AREA_OFFSET_FACTOR = 0.03F
-private const val STONE_WIDTH = 7 * PIXEL_SIZE
-private const val STONE_HEIGHT = 8 * PIXEL_SIZE
+private const val STONE_WIDTH_PIXELS = 7F
+private const val STONE_HEIGHT_PIXELS = 8F
 
 class Nes(
     private val width: Int,
@@ -33,12 +32,15 @@ class Nes(
     private val boardWidth: Int,
     private val boardHeight: Int
 ) : BoardTheme {
+    private val pixelAspect = width / 1000
+    private val pixelSize = ceil(5F * pixelAspect)
+    private val pillarHeight = 7 * pixelSize
     private val gobanWidth = BOARD_SCALE * width
     private val gobanHeight = BOARD_SCALE * height
     private val gobanThickness = gobanHeight * BOARD_THICKNESS_FACTOR
     private val gobanPerspective = (gobanHeight + gobanThickness) * PERSPECTIVE_FACTOR
 
-    private val playAreaHeight = gobanHeight - gobanThickness - gobanPerspective - PILLAR_HEIGHT
+    private val playAreaHeight = gobanHeight - gobanThickness - gobanPerspective - pillarHeight
     private val playAreaOffsetX = gobanWidth * PLAY_AREA_OFFSET_FACTOR
     private val playAreaOffsetY = playAreaHeight * PLAY_AREA_OFFSET_FACTOR
 
@@ -48,17 +50,14 @@ class Nes(
     private val intersectionHeight = (playAreaHeight - 2 * playAreaOffsetY) / (boardHeight - 1).toFloat()
     private val intersectionWidth = (gobanWidth - 2 * playAreaOffsetX) / (boardWidth - 1).toFloat()
 
+    private val pixelWidth = (intersectionWidth / STONE_WIDTH_PIXELS) * 0.90F
+    private val pixelHeight = (intersectionHeight / STONE_HEIGHT_PIXELS) * 0.90F
+
     private val playAreaStartX = gobanStartX + playAreaOffsetX
     private val playAreaStartY = gobanStartY + playAreaOffsetY
 
-    private val stoneWidthPixels = 7F
-    private val stoneHeightPixels = 8F
-
-    private val pixelWidth = (intersectionWidth / stoneWidthPixels) * 0.90F
-    private val pixelHeight = (intersectionHeight / stoneHeightPixels) * 0.90F
-
-    private val stoneWidth = stoneWidthPixels * pixelWidth
-    private val stoneHeight = stoneHeightPixels * pixelHeight
+    private val stoneWidth = STONE_WIDTH_PIXELS * pixelWidth
+    private val stoneHeight = STONE_HEIGHT_PIXELS * pixelHeight
 
     private fun playAreaX(x: Int): Float {
         return playAreaStartX + intersectionWidth * (x - 1)
@@ -86,7 +85,7 @@ class Nes(
             gobanStartX,
             gobanStartY,
             gobanWidth,
-            gobanHeight - gobanThickness - gobanPerspective - PILLAR_HEIGHT
+            gobanHeight - gobanThickness - gobanPerspective - pillarHeight
         )
         g.fill(playArea)
 
@@ -99,26 +98,26 @@ class Nes(
     private fun drawBoardThickness(g: Graphics2D) {
         val startX = gobanStartX
         val startY = gobanStartY + playAreaHeight
-        val shadowWidth = (gobanWidth / PIXEL_SIZE).toInt()
-        val shadowHeight = (gobanThickness / PIXEL_SIZE).toInt()
+        val shadowWidth = ceil(gobanWidth / pixelWidth).toInt()
+        val shadowHeight = (gobanThickness / pixelHeight).toInt()
 
         g.color = COLOR_SHADOW
-        val shadow = Rectangle2D.Float(startX, startY, shadowWidth * PIXEL_SIZE, shadowHeight * PIXEL_SIZE)
+        val shadow = Rectangle2D.Float(startX, startY, shadowWidth * pixelWidth, shadowHeight * pixelHeight)
         g.fill(shadow)
 
         repeat(shadowHeight) { y ->
-            val gy = startY + PIXEL_SIZE * y
-            val x = if (y % 2 == 0) {
-                startX + PIXEL_SIZE
+            val gy = startY + pixelHeight * y
+            val (x, width) = if (y % 2 == 0) {
+                startX + pixelWidth to shadowWidth - 1
             } else {
-                startX
+                startX to shadowWidth
             }
-            g.drawShadowedLine(x, gy, shadowWidth)
+            g.drawShadowedLine(x, gy, width)
         }
     }
 
     private fun drawIntersections(g: Graphics2D) {
-        g.stroke = BasicStroke(PIXEL_SIZE)
+        g.stroke = BasicStroke(pixelWidth)
         g.color = COLOR_SHADOW
 
         repeat(boardWidth) { x ->
@@ -178,28 +177,28 @@ class Nes(
     }
 
     private fun drawPillars(g: Graphics2D) {
-        val pillarWidthInPixels = 15
-        val gobanWidthInPixels = (gobanWidth / PIXEL_SIZE).toInt()
+        val pillarWidthInPixels = 15 * pixelAspect
+        val gobanWidthInPixels = (gobanWidth / pixelWidth).toInt()
 
         val middleXInPixels = gobanWidthInPixels / 2
 
         val leftPillarMiddleXInPixels = middleXInPixels - gobanWidthInPixels / 3
         val leftPillarStartXInPixels = leftPillarMiddleXInPixels - (pillarWidthInPixels / 2) + 1
 
-        drawPillar(g, this.gobanStartX + leftPillarStartXInPixels * PIXEL_SIZE)
+        drawPillar(g, this.gobanStartX + leftPillarStartXInPixels * pixelWidth)
 
         val rightPillarMiddleXInPixels = gobanWidthInPixels - leftPillarMiddleXInPixels
         val rightPillarStartXInPixels = rightPillarMiddleXInPixels - (pillarWidthInPixels / 2) + 3
 
-        drawPillar(g, rightPillarStartXInPixels * PIXEL_SIZE)
+        drawPillar(g, rightPillarStartXInPixels * pixelWidth)
     }
 
     private fun drawPillar(g: Graphics2D, startX: Float) {
-        val startY = (gobanStartY + playAreaHeight) + (gobanThickness / PIXEL_SIZE).toInt() * PIXEL_SIZE
-        g.drawShadowedLine(startX + 2 * PIXEL_SIZE, startY, 11)
-        g.drawShadowedLine(startX, startY + PIXEL_SIZE * 2, 15)
-        g.drawShadowedLine(startX, startY + PIXEL_SIZE * 4, 15)
-        g.drawShadowedLine(startX + 2 * PIXEL_SIZE, startY + PIXEL_SIZE * 6, 11)
+        val startY = (gobanStartY + playAreaHeight) + (gobanThickness / pixelHeight).toInt() * pixelHeight
+        g.drawShadowedLine(startX + 2 * pixelWidth, startY, 11)
+        g.drawShadowedLine(startX, startY + pixelHeight * 2, 15)
+        g.drawShadowedLine(startX, startY + pixelHeight * 4, 15)
+        g.drawShadowedLine(startX + 2 * pixelWidth, startY + pixelHeight * 6, 11)
     }
 
     override fun drawStone(g: Graphics2D, stone: Stone) {
@@ -240,7 +239,7 @@ class Nes(
         }
 
         g.color = COLOR_SHADOW
-        g.stroke = BasicStroke(PIXEL_SIZE)
+        g.stroke = BasicStroke(pixelWidth)
 
         val l1 = Line2D.Float(
             gx,
@@ -474,18 +473,19 @@ class Nes(
             )
         )
     }
-}
 
-private fun Graphics2D.drawShadowedLine(startX: Float, startY: Float, width: Int) {
-    repeat(width) { x ->
-        color = if (x % 2 == 0) {
-            COLOR_GOBAN
-        } else {
-            COLOR_SHADOW
+    private fun Graphics2D.drawShadowedLine(startX: Float, startY: Float, width: Int) {
+        repeat(width) { x ->
+            color = if (x % 2 == 0) {
+                COLOR_GOBAN
+            } else {
+                COLOR_SHADOW
+            }
+
+            val gx = startX + (pixelWidth * x)
+            val pixel = Rectangle2D.Float(gx, startY, pixelWidth, pixelHeight)
+            fill(pixel)
         }
-
-        val gx = startX + (PIXEL_SIZE * x)
-        val pixel = Rectangle2D.Float(gx, startY, PIXEL_SIZE, PIXEL_SIZE)
-        fill(pixel)
     }
+
 }
