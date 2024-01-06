@@ -17,6 +17,8 @@ import kotlin.math.ceil
 private val COLOR_SHADOW = Color.BLACK
 private val COLOR_GOBAN = Color(162, 92, 0, 255)
 private val COLOR_BACKGROUND = Color(0, 79, 92, 255)
+private val COLOR_MARKER = Color(212, 240, 160, 255)
+private val COLOR_MARKER_SHADOW = Color(86, 93, 24, 255)
 
 private const val BOARD_THICKNESS_FACTOR = 0.13F
 private const val PERSPECTIVE_FACTOR = 0.01F
@@ -58,6 +60,8 @@ class Nes(
 
     private val stoneWidth = STONE_WIDTH_PIXELS * pixelWidth
     private val stoneHeight = STONE_HEIGHT_PIXELS * pixelHeight
+
+    private var currentMarkedStone: Stone? = null
 
     private fun playAreaX(x: Int): Float {
         return playAreaStartX + intersectionWidth * (x - 1)
@@ -201,12 +205,92 @@ class Nes(
         g.drawShadowedLine(startX + 2 * pixelWidth, startY + pixelHeight * 6, 11)
     }
 
-    override fun drawStone(g: Graphics2D, stone: Stone) {
+    override fun drawStone(g: Graphics2D, stone: Stone, drawMarker: Boolean) {
         val (x, y) = stone.point
         when (stone.color) {
             SgfColor.Black -> drawBlackStone(g, x, y)
             SgfColor.White -> drawWhiteStone(g, x, y)
         }
+
+        if (drawMarker) {
+            drawMarker(g, stone)
+        }
+    }
+
+    private fun clearMarker(g: Graphics2D, stone: Stone) {
+        drawStone(g, stone, false)
+
+        // remove the last shadow from the marker
+        g.color = COLOR_GOBAN
+
+        val (x, y) = stone.point
+
+        val markerHeight = stoneHeight
+        val markerWidth = stoneWidth
+
+        val gx = playAreaX(x)
+        val gy = playAreaY(y)
+
+        val topLeftX = gx - (markerWidth / 2)
+        val topLeftY = gy - (markerHeight / 2)
+        val bottomY = topLeftY + markerHeight - pixelHeight
+        val rightX = topLeftX + markerWidth - pixelWidth
+
+        g.fill(Rectangle2D.Float(topLeftX, bottomY + pixelHeight, pixelWidth * 3, pixelHeight))
+        g.fill(Rectangle2D.Float(rightX - 2 * pixelWidth, bottomY + pixelHeight, pixelWidth * 3, pixelHeight))
+    }
+
+    private fun drawMarker(g: Graphics2D, stone: Stone) {
+        when (val markedStone = currentMarkedStone) {
+            null -> { }
+            else -> clearMarker(g, markedStone)
+        }
+
+        val (x, y) = stone.point
+        g.color = COLOR_MARKER
+        val markerHeight = stoneHeight
+        val markerWidth = stoneWidth
+
+        val gx = playAreaX(x)
+        val gy = playAreaY(y)
+
+        val topLeftX = gx - (markerWidth / 2)
+        val topLeftY = gy - (markerHeight / 2)
+        val rightX = topLeftX + markerWidth - pixelWidth
+
+        // top
+        g.fill(Rectangle2D.Float(topLeftX, topLeftY, 3 * pixelWidth, pixelHeight))
+        g.fill(Rectangle2D.Float(rightX - 2 * pixelWidth, topLeftY, 3 * pixelWidth, pixelHeight))
+        g.fill(Rectangle2D.Float(topLeftX, topLeftY + pixelHeight, pixelWidth, pixelHeight))
+        g.fill(Rectangle2D.Float(rightX, topLeftY + pixelHeight, pixelWidth, pixelHeight))
+
+        // bottom
+        val bottomY = topLeftY + markerHeight - pixelHeight
+        g.fill(Rectangle2D.Float(topLeftX, bottomY, 3 * pixelWidth, pixelHeight))
+        g.fill(Rectangle2D.Float(rightX - 2 * pixelWidth, bottomY, 3 * pixelWidth, pixelHeight))
+        g.fill(Rectangle2D.Float(topLeftX, bottomY - pixelHeight, pixelWidth, pixelHeight))
+        g.fill(Rectangle2D.Float(rightX, bottomY - pixelHeight, pixelWidth, pixelHeight))
+
+        // middle
+        val middleX = topLeftX + (markerWidth / 2) - pixelWidth
+        val middleY = topLeftY + (markerHeight / 2) - pixelHeight
+
+        g.fill(Rectangle2D.Float(middleX, middleY, 2 * pixelWidth, 2 * pixelHeight))
+
+        g.color = COLOR_MARKER_SHADOW
+        // shadow
+
+        g.fill(Rectangle2D.Float(middleX, middleY + 2 * pixelHeight, 2 * pixelWidth, pixelHeight))
+
+        g.fill(Rectangle2D.Float(topLeftX + pixelWidth, topLeftY + pixelHeight, 2 * pixelWidth, pixelHeight))
+        g.fill(Rectangle2D.Float(rightX - 2 * pixelWidth, topLeftY + pixelHeight, 2 * pixelWidth, pixelHeight))
+        g.fill(Rectangle2D.Float(topLeftX, topLeftY + 2 * pixelHeight, pixelWidth, pixelHeight))
+        g.fill(Rectangle2D.Float(rightX, topLeftY + 2 * pixelHeight, pixelWidth, pixelHeight))
+
+        g.fill(Rectangle2D.Float(topLeftX, bottomY + pixelHeight, pixelWidth * 3, pixelHeight))
+        g.fill(Rectangle2D.Float(rightX - 2 * pixelWidth, bottomY + pixelHeight, pixelWidth * 3, pixelHeight))
+
+        currentMarkedStone = stone
     }
 
     override fun clearPoint(g: Graphics2D, x: Int, y: Int) {
@@ -262,7 +346,7 @@ class Nes(
     private fun drawWhiteStone(
         g: Graphics2D,
         x: Int,
-        y: Int,
+        y: Int
     ) {
         val gx = playAreaX(x)
         val gy = playAreaY(y)

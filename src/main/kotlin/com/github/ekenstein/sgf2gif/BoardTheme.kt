@@ -8,6 +8,6 @@ data class Stone(val point: SgfPoint, val color: SgfColor)
 
 interface BoardTheme {
     fun drawEmptyBoard(g: Graphics2D)
-    fun drawStone(g: Graphics2D, stone: Stone)
+    fun drawStone(g: Graphics2D, stone: Stone, drawMarker: Boolean)
     fun clearPoint(g: Graphics2D, x: Int, y: Int)
 }

@@ -19,7 +19,7 @@ plugins {
 }
 
 group = "com.github.ekenstein"
-version = "0.4.1"
+version = "0.4.3"
 
 repositories {
     mavenCentral()
@@ -89,7 +89,7 @@ tasks {
 }
 
 ktlint {
-    version.set("0.45.2")
+    version.set("0.47.1")
 }
 
 class UpgradeToUnstableFilter : ComponentFilter {

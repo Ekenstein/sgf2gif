@@ -7,18 +7,17 @@ import com.github.ekenstein.sgf.editor.placeStone
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
 import javax.imageio.stream.ImageOutputStream
-import kotlin.time.Duration.Companion.seconds
 
 fun BoardTheme.render(
     outputStream: ImageOutputStream,
     options: Options
 ) {
-    writeGif(outputStream, options.delay.seconds, options.loop) {
+    writeGif(outputStream, options.delayBetweenFrames, options.loop) {
         val board = options.sgf.goToRootNode().extractBoard()
         val boardImage = image(options.width, options.height) { g ->
             drawEmptyBoard(g)
             board.stones.forEach { (point, color) ->
-                drawStone(g, Stone(point, color))
+                drawStone(g, Stone(point, color), false)
             }
         }
 
@@ -31,7 +30,7 @@ fun BoardTheme.render(
                 val capturedStones = board.stones - updatedBoard.stones.keys
 
                 val image = image(options.width, options.height) { g ->
-                    drawStone(g, stone)
+                    drawStone(g, stone, options.showMarker)
 
                     capturedStones.forEach { (point, _) ->
                         clearPoint(g, point.x, point.y)

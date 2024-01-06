@@ -19,10 +19,12 @@ import kotlinx.cli.default
 import java.io.File
 import java.io.InputStream
 import java.nio.file.InvalidPathException
+import kotlin.time.Duration.Companion.seconds
 
 const val DEFAULT_WIDTH = 1000
 const val DEFAULT_HEIGHT = 1000
-const val DEFAULT_DELAY_IN_SECONDS = 2
+const val DEFAULT_DELAY_IN_SECONDS = 2.0
+const val DEFAULT_SHOW_MARKER = false
 const val DEFAULT_LOOP = false
 
 class Options private constructor(parser: ArgParser) {
@@ -53,6 +55,12 @@ class Options private constructor(parser: ArgParser) {
         description = "Whether the animation should be looped or not"
     ).default(DEFAULT_LOOP)
 
+    val showMarker by parser.option(
+        type = ArgType.Boolean,
+        fullName = "show-marker",
+        description = "Whether the last move should be marked or not"
+    ).default(DEFAULT_SHOW_MARKER)
+
     val width by parser.option(
         type = ArgType.Int,
         fullName = "width",
@@ -74,12 +82,16 @@ class Options private constructor(parser: ArgParser) {
         description = "The move number up to which the animation will run to."
     ).default(Int.MAX_VALUE)
 
-    val delay by parser.option(
-        type = ArgType.Int,
+    private val delay by parser.option(
+        type = ArgType.Double,
         fullName = "delay",
         shortName = "d",
         description = "The delay between frames in seconds."
     ).default(DEFAULT_DELAY_IN_SECONDS)
+
+    val delayBetweenFrames by lazy {
+        delay.seconds
+    }
 
     val sgf by lazy {
         val sgf = when (val file = inputFile) {
